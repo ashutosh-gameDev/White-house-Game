@@ -7,18 +7,24 @@
  * Black + Gold.").
  */
 :root {
-  --color-bg: #0a0907;
-  --color-bg-raised: #121009;
-  --color-surface: #17140d;
-  --color-surface-2: #201b12;
-  --color-border: #332b1c;
-  --color-border-strong: #4a3d24;
-  --color-text: #f4eee1;
-  --color-text-dim: #a99c85;
-  --color-text-faint: #6f6552;
-  --color-gold: #c9a24c;
-  --color-gold-bright: #eccb7d;
-  --color-gold-dim: #7c6330;
+  --color-bg: #090909;
+  --color-bg-raised: #111111;
+  --color-surface: #181818;
+  --color-surface-2: #1f1f1a;
+  --color-border: rgba(212, 175, 55, 0.18);
+  --color-border-strong: rgba(212, 175, 55, 0.38);
+  --color-text: #f5f2ed;
+  --color-text-dim: #c9c1b6;
+  --color-text-faint: #8d8478;
+  --color-gold: #d4af37;
+  --color-gold-bright: #f8e7a1;
+  --color-gold-dim: #9a7420;
+  --color-success: #6fbf73;
+
+  /* Button-specific gradient stops — a touch richer than the flat --color-gold */
+  --gold-grad-top: #f8e7a1;
+  --gold-grad-mid: #d4af37;
+  --gold-grad-bottom: #a67c00;
 }
 
 @theme inline {
@@ -34,6 +40,7 @@
   --color-gold: var(--color-gold);
   --color-gold-bright: var(--color-gold-bright);
   --color-gold-dim: var(--color-gold-dim);
+  --color-success: var(--color-success);
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
@@ -42,16 +49,41 @@
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
 }
 
 .text-balance {
   text-wrap: balance;
+}
+
+/* A slow, subtle sweep used sparingly (buttons, dividers) — never on more
+   than one element in view at a time, per "tasteful animations only". */
+@keyframes gold-shimmer {
+  0% {
+    background-position: -150% 0;
+  }
+  100% {
+    background-position: 250% 0;
+  }
+}
+
+.shimmer-sweep {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: gold-shimmer 2.8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

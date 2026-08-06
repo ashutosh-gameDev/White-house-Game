@@ -1,8 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+import { resolveAssetUrl } from "@/lib/assetUrl";
 
 interface SplashScreenProps {
   visible: boolean;
@@ -31,7 +30,7 @@ export function SplashScreen({ visible, gameName, bannerPath, progress, error }:
           {bannerPath ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`${BACKEND_URL}${bannerPath}`}
+              src={resolveAssetUrl(bannerPath)}
               alt={gameName}
               className="relative h-24 w-auto object-contain"
             />

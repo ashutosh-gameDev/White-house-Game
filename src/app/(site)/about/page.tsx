@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import { RevealSection } from "@/components/motion/RevealSection";
 
 const PROCESS = [
@@ -43,7 +44,7 @@ const PRINCIPLES = [
 export default function AboutPage() {
   return (
     <>
-      <section className="border-b border-border">
+      <section>
         <Container className="flex flex-col gap-6 py-24">
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-gold">About</span>
           <h1 className="max-w-2xl text-balance font-display text-4xl font-semibold leading-tight sm:text-5xl">
@@ -73,12 +74,19 @@ export default function AboutPage() {
         </Container>
       </RevealSection>
 
+      <SectionDivider />
+
       <RevealSection>
-        <Container className="flex flex-col gap-12 border-t border-border py-24">
+        <Container className="flex flex-col gap-12 py-24">
           <SectionHeading eyebrow="Principles" title="What stays the same across every game" />
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
             {PRINCIPLES.map((item) => (
-              <div key={item.title} className="rounded-sm border border-border p-6">
+              <div
+                key={item.title}
+                className="rounded-md border border-border bg-surface p-6 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.5)]
+                           transition-all duration-300 hover:-translate-y-1 hover:border-gold-dim
+                           hover:shadow-[0_16px_36px_-12px_rgba(212,175,55,0.25)]"
+              >
                 <h3 className="font-display text-lg font-semibold text-gold-bright">{item.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-text-dim">{item.body}</p>
               </div>

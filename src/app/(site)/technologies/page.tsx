@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import { RevealSection } from "@/components/motion/RevealSection";
 
 const STACK = [
@@ -33,7 +34,7 @@ const STACK = [
 export default function TechnologiesPage() {
   return (
     <>
-      <section className="border-b border-border">
+      <section>
         <Container className="flex flex-col gap-6 py-24">
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Technologies</span>
           <h1 className="max-w-2xl text-balance font-display text-4xl font-semibold leading-tight sm:text-5xl">
@@ -45,6 +46,8 @@ export default function TechnologiesPage() {
           </p>
         </Container>
       </section>
+
+      <SectionDivider />
 
       <RevealSection>
         <Container className="flex flex-col divide-y divide-border py-8">

@@ -48,18 +48,25 @@ export function Navbar({ username }: { username: string }) {
           <Mark className="h-9 w-auto" />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-10 md:flex">
           {NAV_ITEMS.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-xs font-medium uppercase tracking-[0.15em] transition-colors ${
+                className={`group relative py-1 text-xs font-medium uppercase tracking-[0.15em] transition-colors duration-300 ${
                   active ? "text-gold" : "text-text-dim hover:text-text"
                 }`}
               >
                 {item.label}
+                <span
+                  className={`absolute -bottom-0.5 left-0 h-px w-full origin-left bg-gold transition-transform duration-300 ease-out ${
+                    active
+                      ? "scale-x-100 shadow-[0_0_6px_rgba(212,175,55,0.6)]"
+                      : "scale-x-0 group-hover:scale-x-100"
+                  }`}
+                />
               </Link>
             );
           })}

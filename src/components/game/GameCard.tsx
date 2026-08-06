@@ -1,18 +1,19 @@
 import Link from "next/link";
 import type { Game } from "@/lib/types";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+import { resolveAssetUrl } from "@/lib/assetUrl";
 
 export function GameCard({ game }: { game: Game }) {
   return (
     <Link
       href={`/games/${game.slug}`}
-      className="group relative block aspect-[3/4] overflow-hidden rounded-md border border-border bg-surface transition-colors duration-300 hover:border-gold"
+      className="group relative block aspect-[3/4] overflow-hidden rounded-md border border-border bg-surface
+                 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-gold
+                 hover:shadow-[0_16px_40px_-12px_rgba(212,175,55,0.35)]"
     >
       {game.thumbnailPath ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`${BACKEND_URL}${game.thumbnailPath}`}
+          src={resolveAssetUrl(game.thumbnailPath)}
           alt={game.name}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
@@ -25,9 +26,16 @@ export function GameCard({ game }: { game: Game }) {
       {/* Bottom scrim for title legibility over any thumbnail */}
       <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
+      {/* Steam-style light sweep — one pass per hover, not a looping animation */}
+      <div
+        className="pointer-events-none absolute inset-0 -translate-x-[120%] skew-x-12 bg-gradient-to-r
+                   from-transparent via-white/15 to-transparent transition-transform duration-700 ease-out
+                   group-hover:translate-x-[120%]"
+      />
+
       {/* Hover play overlay */}
       <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold text-bg shadow-lg shadow-black/40 transition-transform duration-200 group-hover:scale-110">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold text-bg shadow-[0_8px_24px_rgba(212,175,55,0.5)] transition-transform duration-200 group-hover:scale-110">
           <svg viewBox="0 0 24 24" className="ml-1 h-6 w-6" fill="currentColor" aria-hidden="true">
             <path d="M8 5v14l11-7z" />
           </svg>
