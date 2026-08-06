@@ -19,5 +19,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|api/auth|_next/static|_next/image|favicon.ico).*)"],
+  // The static-file exclusion matters here specifically: the login page
+  // needs to show a logo image *before* a session cookie exists, so
+  // public/ assets (and the favicon) must never be gated the same way pages are.
+  matcher: [
+    "/((?!login|api/auth|_next/static|_next/image|favicon.ico|icon.png|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico)$).*)",
+  ],
 };

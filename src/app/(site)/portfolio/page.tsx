@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { listCategories } from "@/lib/data/categories";
 import { listGames } from "@/lib/data/games";
-import { GameCard } from "@/components/game/GameCard";
+import { GameRail } from "@/components/game/GameRail";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { RevealSection } from "@/components/motion/RevealSection";
@@ -65,11 +65,7 @@ export default async function PortfolioPage() {
           <RevealSection key={category.id}>
             <Container className="flex flex-col gap-8 border-b border-border py-20">
               <SectionHeading eyebrow="Genre" title={category.name} description={blurbFor(category.name)} />
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {categoryGames.map((game) => (
-                  <GameCard key={game.id} game={game} />
-                ))}
-              </div>
+              <GameRail games={categoryGames} />
             </Container>
           </RevealSection>
         );

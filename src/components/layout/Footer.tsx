@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { Mark } from "@/components/brand/Logo";
 
 const FOOTER_LINKS = [
   { href: "/portfolio", label: "Portfolio" },
@@ -13,9 +14,7 @@ export function Footer() {
     <footer className="border-t border-border">
       <Container className="flex flex-col gap-8 py-14 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-sm">
-          <p className="font-display text-lg font-semibold">
-            <span className="text-gold">White</span>House
-          </p>
+          <Mark className="h-8 w-auto" />
           <p className="mt-3 text-sm leading-relaxed text-text-dim">
             Unity WebGL games, built for operators. This preview is private — access is by invitation only and is
             not available to the public.

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Mark } from "@/components/brand/Logo";
 
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
@@ -43,10 +44,8 @@ export function Navbar({ username }: { username: string }) {
       }`}
     >
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-wide">
-          <span className="text-gold">White</span>
-          <span className="text-text">House</span>
-          <span className="ml-1 h-1.5 w-1.5 rounded-full bg-gold" />
+        <Link href="/">
+          <Mark className="h-9 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { listGames } from "@/lib/data/games";
-import { GameCard } from "@/components/game/GameCard";
+import { GameRail } from "@/components/game/GameRail";
 import { LinkButton } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -19,6 +19,10 @@ const TECH_STRIP = ["Unity", "Socket.IO", "Node.js", "Next.js", "Prisma", "TypeS
 export default async function HomePage() {
   const session = await getSession();
   const featuredGames = await listGames(session!.token, { featured: true });
+  // Fall back to the general catalog so the homepage isn't empty just
+  // because nobody's flagged a game "featured" in the CRM yet — still live,
+  // CRM-managed data either way, never anything hardcoded.
+  const spotlightGames = featuredGames.length > 0 ? featuredGames : await listGames(session!.token);
 
   return (
     <>
@@ -65,7 +69,7 @@ export default async function HomePage() {
           <div className="flex flex-wrap items-end justify-between gap-6">
             <SectionHeading
               eyebrow="Selected work"
-              title="Featured builds"
+              title={featuredGames.length > 0 ? "Featured builds" : "In the catalog"}
               description="A sample of what's currently in the portfolio. Every title here is a working Unity WebGL build, not a mockup."
             />
             <Link href="/portfolio" className="text-sm font-medium uppercase tracking-[0.1em] text-gold hover:text-gold-bright">
@@ -73,12 +77,8 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {featuredGames.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredGames.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </div>
+          {spotlightGames.length > 0 ? (
+            <GameRail games={spotlightGames} />
           ) : (
             <div className="rounded-sm border border-dashed border-border p-12 text-center text-text-dim">
               The portfolio is being prepared. Check back shortly, or head to{" "}

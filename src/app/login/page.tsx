@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/brand/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,12 +42,9 @@ export default function LoginPage() {
       />
 
       <div className="relative w-full max-w-sm">
-        <div className="mb-10 text-center">
-          <p className="font-display text-2xl font-semibold tracking-wide">
-            <span className="text-gold">White</span>
-            <span className="text-text">House</span>
-          </p>
-          <p className="mt-2 font-mono text-xs uppercase tracking-[0.25em] text-text-faint">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <Logo className="h-44 w-auto" />
+          <p className="-mt-4 font-mono text-xs uppercase tracking-[0.25em] text-text-faint">
             Private preview access
           </p>
         </div>
