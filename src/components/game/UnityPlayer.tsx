@@ -173,6 +173,7 @@ export function UnityPlayer({
   return (
     <canvas
       ref={canvasRef}
+      id="unity-canvas"
       className="h-full w-full bg-black"
       style={{ imageRendering: "pixelated" }}
       aria-label={`${gameName} — Unity WebGL player`}
