@@ -25,6 +25,14 @@ declare global {
 // what lets one loader component work for every title.
 const BUILD_OUTPUT_NAME = "game";
 
+// Standing compression convention: Compression Format = Brotli, Decompression
+// Fallback = ON (Player Settings → Publishing Settings). Fallback means
+// Unity's own loader.js decompresses client-side, so a plain static host like
+// GitHub Pages works with zero server config — no Content-Encoding header
+// needed. That combination is what makes Unity suffix the three heavy assets
+// with ".unityweb"; the loader script itself is never compressed.
+const COMPRESSED_ASSET_SUFFIX = ".unityweb";
+
 // How long to wait after the engine finishes loading before treating a game
 // as "ready" even if it never calls the OnEnter bridge message — keeps this
 // component working for a future game that doesn't implement that contract.
@@ -113,9 +121,9 @@ export function UnityPlayer({
         .createUnityInstance(
           canvasRef.current,
           {
-            dataUrl: `${buildUrl}/Build/${BUILD_OUTPUT_NAME}.data`,
-            frameworkUrl: `${buildUrl}/Build/${BUILD_OUTPUT_NAME}.framework.js`,
-            codeUrl: `${buildUrl}/Build/${BUILD_OUTPUT_NAME}.wasm`,
+            dataUrl: `${buildUrl}/Build/${BUILD_OUTPUT_NAME}.data${COMPRESSED_ASSET_SUFFIX}`,
+            frameworkUrl: `${buildUrl}/Build/${BUILD_OUTPUT_NAME}.framework.js${COMPRESSED_ASSET_SUFFIX}`,
+            codeUrl: `${buildUrl}/Build/${BUILD_OUTPUT_NAME}.wasm${COMPRESSED_ASSET_SUFFIX}`,
             streamingAssetsUrl: `${buildUrl}/StreamingAssets`,
             companyName: "WhiteHouse Games",
             productName: gameName,

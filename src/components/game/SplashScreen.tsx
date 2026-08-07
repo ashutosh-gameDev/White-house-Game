@@ -46,15 +46,20 @@ export function SplashScreen({ visible, gameName, bannerPath, progress, error }:
               </p>
             </div>
           ) : (
-            <div className="relative flex w-64 flex-col gap-3">
-              <div className="h-px w-full overflow-hidden bg-border">
+            <div className="relative flex w-72 flex-col gap-3">
+              <div className="h-2 w-full overflow-hidden rounded-full border border-border bg-bg-raised shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)]">
                 <motion.div
-                  className="h-full bg-gold"
+                  className="h-full rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, var(--gold-grad-bottom), var(--gold-grad-mid), var(--gold-grad-top))",
+                    boxShadow: "0 0 10px rgba(212,175,55,0.6)",
+                  }}
                   animate={{ width: `${Math.round(progress * 100)}%` }}
                   transition={{ duration: 0.2 }}
                 />
               </div>
-              <p className="text-center font-mono text-[11px] uppercase tracking-[0.2em] text-text-faint">
+              <p className="text-center font-mono text-xs uppercase tracking-[0.2em] text-text-dim">
                 Loading — {Math.round(progress * 100)}%
               </p>
             </div>
