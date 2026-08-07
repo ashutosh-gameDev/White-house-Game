@@ -2,8 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getGameBySlug } from "@/lib/data/games";
 import { ApiError } from "@/lib/api-error";
-import { GameTopBar } from "@/components/game/GameTopBar";
-import { GamePlayer } from "@/components/game/GamePlayer";
+import { GameShell } from "@/components/game/GameShell";
 
 export default async function GameDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -19,17 +18,12 @@ export default async function GameDetailPage({ params }: { params: Promise<{ slu
   }
 
   return (
-    <div className="flex h-screen flex-col bg-bg">
-      <GameTopBar gameName={game.name} />
-      <div className="relative flex-1">
-        <GamePlayer
-          gameSlug={game.slug}
-          gameName={game.name}
-          bannerPath={game.bannerPath}
-          unityBuildPath={game.unityBuildPath}
-          token={session.token}
-        />
-      </div>
-    </div>
+    <GameShell
+      gameSlug={game.slug}
+      gameName={game.name}
+      bannerPath={game.bannerPath}
+      unityBuildPath={game.unityBuildPath}
+      token={session.token}
+    />
   );
 }

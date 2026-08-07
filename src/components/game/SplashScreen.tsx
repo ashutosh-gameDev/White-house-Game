@@ -43,11 +43,16 @@ export function SplashScreen({ visible, gameName, bannerPath, progress, error }:
             className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black/80"
           />
 
-          <div className="relative flex h-full w-full flex-col items-center justify-end gap-6 pb-20">
-            {!bannerPath && (
-              <h1 className="font-display text-3xl font-semibold italic text-text">{gameName}</h1>
-            )}
+          {!bannerPath && (
+            <h1 className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 font-display text-3xl font-semibold italic text-text">
+              {gameName}
+            </h1>
+          )}
 
+          {/* Positioned between center and bottom (not dead-center, not
+              flush to the edge) — same spot ExitOverlay uses, so the loading
+              and exit states feel like one consistent piece of UI. */}
+          <div className="absolute left-1/2 top-[68%] w-[min(90vw,34rem)] -translate-x-1/2 -translate-y-1/2">
             {error ? (
               <div className="flex flex-col items-center gap-2 text-center">
                 <p className="text-sm text-red-400">{error}</p>
@@ -56,8 +61,8 @@ export function SplashScreen({ visible, gameName, bannerPath, progress, error }:
                 </p>
               </div>
             ) : (
-              <div className="flex w-80 max-w-[80vw] flex-col gap-3">
-                <div className="h-3 w-full overflow-hidden rounded-full border border-border bg-bg-raised/90 shadow-[inset_0_1px_3px_rgba(0,0,0,0.7)] backdrop-blur-sm">
+              <div className="flex flex-col gap-3">
+                <div className="h-4 w-full overflow-hidden rounded-full border border-border bg-bg-raised/90 shadow-[inset_0_1px_3px_rgba(0,0,0,0.7)] backdrop-blur-sm">
                   <motion.div
                     className="h-full rounded-full"
                     style={{

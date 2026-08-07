@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export function GameTopBar({ gameName }: { gameName: string }) {
+export function GameTopBar({ gameName, onExit }: { gameName: string; onExit: () => void }) {
   const router = useRouter();
 
   async function handleLogout() {
@@ -14,14 +13,16 @@ export function GameTopBar({ gameName }: { gameName: string }) {
 
   return (
     <header className="flex items-center justify-between border-b border-border bg-bg px-6 py-3">
-      <Link
-        href="/portfolio"
+      <button
+        type="button"
+        onClick={onExit}
         className="text-xs font-medium uppercase tracking-[0.15em] text-text-dim hover:text-gold"
       >
         ← Portfolio
-      </Link>
+      </button>
       <span className="font-display text-sm italic text-text-dim">{gameName}</span>
       <button
+        type="button"
         onClick={handleLogout}
         className="text-xs font-medium uppercase tracking-[0.15em] text-text-dim hover:text-gold"
       >

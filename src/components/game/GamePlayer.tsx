@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { SplashScreen } from "./SplashScreen";
 import { UnityPlayer } from "./UnityPlayer";
 
@@ -25,14 +24,15 @@ export function GamePlayer({
   bannerPath,
   unityBuildPath,
   token,
+  onExit,
 }: {
   gameSlug: string;
   gameName: string;
   bannerPath: string | null;
   unityBuildPath: string;
   token: string;
+  onExit: () => void;
 }) {
-  const router = useRouter();
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function GamePlayer({
           socketUrl={SOCKET_URL}
           onProgress={setProgress}
           onReady={() => setReady(true)}
-          onExit={() => router.replace("/portfolio")}
+          onExit={onExit}
           onError={setError}
         />
       )}
