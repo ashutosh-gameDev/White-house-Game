@@ -69,6 +69,7 @@ export function UnityPlayer({
   useEffect(() => {
     let cancelled = false;
     let readyFallbackTimer: ReturnType<typeof setTimeout> | undefined;
+    const initialOrientationRetries: ReturnType<typeof setTimeout>[] = [];
 
     const markReady = () => {
       if (readyRef.current) return;
@@ -195,11 +196,19 @@ export function UnityPlayer({
             pendingAuthRequestRef.current = false;
             sendAuthToken();
           }
-          // Sync orientation once as soon as Unity can receive it — the
-          // canvas's real size by now may already differ from whatever it
-          // was when the engine itself first booted (splash screen layout,
-          // late container resize, etc).
+          // Sync orientation as soon as Unity can receive it — and again a
+          // couple of times shortly after, not just once. A single call
+          // right here was unreliable specifically when the page first
+          // loads already in portrait: subsequent resize/orientationchange
+          // events always applied correctly, but the very first paint
+          // sometimes didn't, most likely because the canvas's backing
+          // store hasn't fully settled to its real post-layout size at the
+          // exact instant the loader promise resolves. Retrying a couple of
+          // times over the next second costs nothing (notifyOrientation is
+          // a no-op if nothing actually changed) and catches that race.
           notifyOrientation();
+          initialOrientationRetries.push(setTimeout(notifyOrientation, 300));
+          initialOrientationRetries.push(setTimeout(notifyOrientation, 900));
           // Most games signal real readiness (data loaded, playable) via the
           // "OnEnter" bridge message above, which can arrive well after the
           // engine itself finishes loading. This is just a safety net for a
@@ -220,6 +229,7 @@ export function UnityPlayer({
     return () => {
       cancelled = true;
       if (readyFallbackTimer) clearTimeout(readyFallbackTimer);
+      initialOrientationRetries.forEach(clearTimeout);
       clearTimeout(resizeDebounce);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleOrientationChange);
