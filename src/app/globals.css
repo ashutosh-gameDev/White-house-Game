@@ -96,32 +96,3 @@ body {
     scroll-behavior: auto !important;
   }
 }
-
-/*
- * Games are landscape-only — a plain CSS media query is what drives this,
- * deliberately not JS resize/orientationchange listeners. Real mobile
- * browsers fire `orientationchange` before they've finished resizing the
- * viewport (the URL bar collapse/expand animation is still running), which
- * makes any JS-timed approach fundamentally racy. `(orientation: portrait)`
- * has no such lag — it reflects the actual current layout instantly. See
- * LandscapeGate in components/game/GameShell.tsx.
- */
-.landscape-gate {
-  display: none;
-}
-
-@media (orientation: portrait) {
-  .landscape-gate {
-    display: flex;
-  }
-}
-
-@keyframes rotate-hint {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(90deg);
-  }
-}
