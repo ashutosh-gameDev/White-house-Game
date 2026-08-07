@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { GameTopBar } from "./GameTopBar";
 import { GamePlayer } from "./GamePlayer";
 import { ExitOverlay } from "./ExitOverlay";
+import { LandscapeGate } from "./LandscapeGate";
 
 /**
  * Owns the one "leave this game" action shared by both exit paths — Unity's
  * own in-game exit/close button (bridged via GamePlayer → UnityPlayer's
- * "OnExit" message) and the top bar's "← Portfolio" link. Both used to
+ * "OnExit" message) and the top bar's "← Games" link. Both used to
  * navigate straight away, unmounting UnityPlayer mid-frame; its cleanup then
  * calls the WebGL runtime's Quit(), which frees WASM memory synchronously
  * and can block the main thread for a couple of seconds — from the player's
@@ -40,7 +41,7 @@ export function GameShell({
     // stuck game frame.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        router.replace("/portfolio");
+        router.replace("/games");
       });
     });
   };
@@ -59,6 +60,7 @@ export function GameShell({
         />
       </div>
       {exiting && <ExitOverlay />}
+      <LandscapeGate />
     </div>
   );
 }

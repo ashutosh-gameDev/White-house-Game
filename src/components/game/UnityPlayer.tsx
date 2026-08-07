@@ -111,27 +111,16 @@ export function UnityPlayer({
       }
     };
 
-    // Bridges browser resize/orientation events into Unity's own
-    // OrientationChange.cs (GameObject "OC"), which handles the actual
-    // rotate/rescale tween. Nothing in the WebGL build calls this on its
-    // own — the only caller in the source is an #if UNITY_EDITOR spacebar
-    // shortcut for testing. Debounced client-side on top of
-    // OrientationChange.cs's own internal 1s delay before it applies a
-    // resize, since mobile "resize" events can fire several times in a row
-    // mid-rotation.
-    let resizeDebounce: ReturnType<typeof setTimeout> | undefined;
-    const notifyOrientation = () => {
-      const instance = instanceRef.current;
-      const canvas = canvasRef.current;
-      if (!instance || !canvas) return;
-      instance.SendMessage("OC", "SwitchDisplay", `${canvas.clientWidth},${canvas.clientHeight}`);
-    };
-    const handleResize = () => {
-      clearTimeout(resizeDebounce);
-      resizeDebounce = setTimeout(notifyOrientation, 150);
-    };
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("orientationchange", handleResize);
+    // Note on orientation: this deliberately does NOT bridge resize events
+    // into Unity's OrientationChange.cs (GameObject "OC") to make it rotate
+    // its UI 90° to fake landscape while the phone is held portrait — that
+    // path was built, verified working (screenshot-confirmed), and then
+    // dropped in favor of a simpler, more standard approach: the site always
+    // presents Unity with a landscape-shaped canvas, and blocks portrait
+    // with a "rotate your device" overlay instead (see LandscapeGate in
+    // GameShell.tsx). That sidesteps real mobile browsers' `orientationchange`
+    // firing before the viewport finishes resizing entirely, rather than
+    // working around it with settle-delay heuristics.
 
     const script = document.createElement("script");
     script.src = `${buildUrl}/Build/${BUILD_OUTPUT_NAME}.loader.js`;
@@ -165,11 +154,6 @@ export function UnityPlayer({
             pendingAuthRequestRef.current = false;
             sendAuthToken();
           }
-          // Sync orientation once as soon as Unity can receive it — the
-          // canvas's real size by now may already differ from whatever it
-          // was when the engine itself first booted (splash screen layout,
-          // late container resize, etc).
-          notifyOrientation();
           // Most games signal real readiness (data loaded, playable) via the
           // "OnEnter" bridge message above, which can arrive well after the
           // engine itself finishes loading. This is just a safety net for a
@@ -190,9 +174,6 @@ export function UnityPlayer({
     return () => {
       cancelled = true;
       if (readyFallbackTimer) clearTimeout(readyFallbackTimer);
-      clearTimeout(resizeDebounce);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("orientationchange", handleResize);
       script.remove();
       delete window.dispatchReactUnityEvent;
       instanceRef.current?.Quit().catch(() => {});

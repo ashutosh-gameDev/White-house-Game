@@ -8,7 +8,7 @@ import { Logo } from "@/components/brand/Logo";
  * Unity's runtime actually tears down. Quit() frees a large chunk of WASM
  * memory synchronously and can block the main thread for a couple of
  * seconds — without this, the player just sees a frozen game frame during
- * that handoff back to /portfolio. GamePlayer mounts this first and gives it
+ * that handoff back to /games. GameShell mounts this first and gives it
  * a paint frame before triggering the Quit()+navigate, so the player sees
  * this instead of a stuck screen. There's no real progress to report here
  * (Quit() doesn't expose one), so the bar is an indeterminate sweep.

@@ -18,7 +18,7 @@ export function GameTopBar({ gameName, onExit }: { gameName: string; onExit: () 
         onClick={onExit}
         className="text-xs font-medium uppercase tracking-[0.15em] text-text-dim hover:text-gold"
       >
-        ← Portfolio
+        ← Games
       </button>
       <span className="font-display text-sm italic text-text-dim">{gameName}</span>
       <button
