@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,6 +12,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Fires the moment this page loads — before the visitor has even started
+  // typing — so a sleeping Render free-tier backend (and the Neon Postgres
+  // behind it, since /health does a real SELECT 1) is already waking up by
+  // the time they submit the form. Replaces the external cron-job.org
+  // pinger: same warm-up, but only triggered by an actual visitor arriving,
+  // not on a timer running whether anyone's here or not.
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/health`).catch(() => {
+      // Best-effort only — a failed warm-up ping just means login proceeds
+      // at normal (possibly cold-start) speed, nothing to surface to the user.
+    });
+  }, []);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
