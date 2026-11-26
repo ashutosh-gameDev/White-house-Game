@@ -141,3 +141,26 @@ body:has(#pauseRace:not([hidden])) #hud{
 :is(#menu,#board,#results,#pausePanel) :is(button,input,select):focus-visible{
  outline-color:var(--panel-accent);
 }
+
+/* Keep controls and status text legible on the light panels. */
+:is(#menu,#pausePanel,#results,#board) button:not(.primary){
+ color:#fff7fc;
+ background:#304c6a;
+ border-color:#a45a83;
+ border-bottom-color:#723852;
+}
+:is(#menu,#pausePanel,#results,#board) button:not(.primary):hover{
+ background:#3d5c7b;
+}
+:is(#menu,#pausePanel,#results,#board) button.primary{
+ color:#25334a;
+ background:#ffd676;
+ border-color:#ba8133;
+}
+:is(#menu,#pausePanel,#results,#board) button.primary:hover{
+ background:#ffe39b;
+}
+#resultStatus[data-state="verified"]{color:#205638}
+#resultStatus[data-state="error"]{color:#8a283d}
+#menu .keyHelp{color:var(--panel-muted)}
+#menu .keyHelp kbd{color:var(--panel-ink);background:#f4fbff;border-color:#b5779a}

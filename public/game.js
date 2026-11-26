@@ -928,20 +928,20 @@ async function boot(){
  }
  function resetGhost(){
   for(const {state,visual,tag} of replays){
-   state.sim.dispose();
+   state?.sim.dispose();
    tag.material.map.dispose();
    tag.material.dispose();
    visual.dispose();
   }
   replays.length=0;
  }
- function addReplay(run,fullColor,delay=0){
+ function addReplay(run,fullColor,delay=0,repeat=false){
   const state=makeCar(course);
   const style=Object.hasOwn(carStyles,run.car)?run.car:fullColor?'expedition':runCar;
   const visual=buildCar(style,!fullColor,run.country??null);
   const tag=nameTag(run.name);
   visual.root.add(tag);
-  replays.push({run,state,visual,tag,previous:state.pose,inputs:run.inputs,delay,gridSlot:fullColor&&!podium?replays.length+1:0});
+  replays.push({run,state,visual,tag,previous:state.pose,inputs:run.inputs,delay,repeat,gridSlot:fullColor&&!podium?replays.length+1:0});
  }
  let pendingStart=false, raceRivals=[];
  async function start(){
@@ -973,7 +973,9 @@ async function boot(){
     const j=Math.floor(Math.random()*(i+1));
     [slots[i],slots[j]]=[slots[j],slots[i]];
    }
-   raceRivals.forEach((run,i)=>addReplay(run,true,slots[i]*14+Math.floor(Math.random()*14)));
+   const startSpacing=Math.floor(600/Math.max(1,slots.length));
+   raceRivals.forEach((run,i)=>addReplay(run,true,slots[i]*startSpacing+
+    Math.floor(Math.random()*Math.min(120,startSpacing)),true));
   }
   for(const run of recordingField)addReplay(run,true);
   const ghostRun=opponent==='leader'?leader:opponent==='personal'?personal:null;
@@ -1129,12 +1131,26 @@ async function boot(){
    while(accumulator>=DT&&mode==='racing'){
     accumulator-=DT;
     for(const replay of replays){
-     const {state,visual}=replay;
-     if(!visual.root.visible)continue;
      const replayTick=inputs.length-replay.delay;
      if(replayTick<0)continue;
+     const {visual}=replay;
+     if(replay.repeat&&!visual.root.visible){
+      replay.state=makeCar(course);
+      replay.previous=replay.state.pose;
+      visual.root.visible=true;
+     }
+     if(!visual.root.visible)continue;
+     const state=replay.state;
      const code=replay.inputs[replayTick];
-     if(code===undefined||state.done){if(!podium)visual.root.visible=false;continue;}
+     if(code===undefined||state.done){
+      if(!podium)visual.root.visible=false;
+      if(replay.repeat){
+       state.sim.dispose();
+       replay.state=null;
+       replay.delay=inputs.length+180+Math.floor(Math.random()*420);
+      }
+      continue;
+     }
      replay.previous=state.pose;
      step(state,inputCodes.indexOf(code),course);
      if(state.reset)replay.previous=state.pose;
