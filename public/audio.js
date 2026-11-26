@@ -137,6 +137,7 @@ export function makeAudio(toggle){
    noiseGain.gain.setTargetAtTime(active&&car?.drift?Math.min(.12,car.slip*.015):0,t,.075);
    background(t,mode);
   },
+  launch(){tone(95,415,.24,.13,'sawtooth');},
   thud(){tone(110,36,.15,.35,'triangle');},
   checkpoint(){tone(660,810,.10,.11);},
   finish(){[523,659,784,1047,784,1047].forEach((n,i)=>tone(n,n,.25,i===5?.22:.15,'square',i*.105));}

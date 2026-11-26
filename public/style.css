@@ -6,3 +6,91 @@ button{border:1px solid #a8c8a85c;border-bottom:3px solid #102c23;border-radius:
 .keyHelp{display:flex;flex-wrap:wrap;gap:6px 10px;padding-top:7px;color:#e8dbc0;font-size:12px}.keyHelp span{white-space:nowrap}.keyHelp kbd{padding:2px 5px;color:#ffde97;background:#ffffff11;border:1px solid #ffe4a840;border-radius:4px;font:700 11px system-ui,sans-serif}#raceProgress{display:block;width:100%;height:4px;margin-top:5px;accent-color:#f5ca70}#resultStatus[data-state="verified"]{color:#c9f1bd}#resultStatus[data-state="error"]{color:#ffd1a4}#results .actions button{flex:1}#results .actions{margin-top:12px}
 #touch{left:max(14px,env(safe-area-inset-left));right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));align-items:flex-end;pointer-events:none;gap:12px}#touch .stickControl{display:grid;place-items:center;gap:3px;pointer-events:auto}#joystick{--stick-x:0px;--stick-y:0px;position:relative;display:block;width:clamp(94px,23vw,130px);aspect-ratio:1;border:2px solid #ffe3a184;border-radius:50%;background:radial-gradient(circle,#6d82635e 0 32%,#193c31ed 34% 67%,#2b5141e8 69%);box-shadow:0 5px 14px #0d241a7a;touch-action:none;user-select:none;-webkit-touch-callout:none}#stickKnob{position:absolute;inset:30%;border:2px solid #f7dc9a;border-bottom-color:#9b7137;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff0aa,#e4ae4e 73%);box-shadow:0 3px 8px #13261999;transform:translate(var(--stick-x),var(--stick-y));pointer-events:none}#joystick:not(.held) #stickKnob{transition:transform .11s ease-out}.stickArrow{position:absolute;width:7px;height:7px;border-top:2px solid #ffe8b0;border-right:2px solid #ffe8b0;pointer-events:none}.stickArrow.up{top:10%;left:calc(50% - 3px);transform:rotate(-45deg)}.stickArrow.down{bottom:10%;left:calc(50% - 3px);transform:rotate(135deg)}.stickArrow.left{left:10%;top:calc(50% - 3px);transform:rotate(-135deg)}.stickArrow.right{right:10%;top:calc(50% - 3px);transform:rotate(45deg)}.touchCaption{font-size:10px;font-weight:900;letter-spacing:.13em;color:#fff0ba;text-shadow:0 2px 4px #111}#touch .touchActions{display:flex;gap:9px;align-items:flex-end;padding-bottom:12px;pointer-events:auto}#touch .touchActions button{display:grid;place-items:center;gap:1px;min-width:clamp(62px,16vw,88px);height:clamp(57px,15vw,77px);border-radius:16px;font-size:clamp(13px,3.1vw,16px);font-weight:850;user-select:none;-webkit-touch-callout:none}#touch .touchActions button span{font-size:24px;line-height:1}#touch .touchActions .jumpAction{background:#f0c56e;color:#21372a;border-bottom-color:#926228}#touch .touchActions .driftAction{background:#235647;color:#ffdf9b}#touch .touchActions button.active{background:#fff3b9;color:#19392f;transform:translateY(3px);box-shadow:none}
 #pausePanel{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:min(330px,calc(100% - 24px));text-align:center;padding:20px}#pausePanel h2{font-family:Rally Dust,system-ui,sans-serif;font-size:25px;margin-bottom:15px}#pausePanel .actions button{flex:1}@media(max-height:500px) and (orientation:landscape){header{padding:8px 12px}header nav button{min-height:33px;padding:5px 8px;font-size:12px}#hud{top:53px;padding:5px 12px}#hud strong{font-size:22px}#joystick{width:clamp(76px,24dvh,105px)}#touch .touchActions button{height:clamp(48px,16dvh,65px);min-width:62px}#touch .touchActions{padding-bottom:3px}}@media(max-width:470px){header nav{gap:3px;flex-wrap:wrap;justify-content:flex-end}header nav button{font-size:11px;padding-inline:5px}}
+#regionControl:not([hidden]){display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5px 8px;margin-top:10px}#regionControl label{margin:0}#regionControl select{min-width:0}
+.pauseIcon{display:none}
+#pausePanel .pauseTools{margin-top:9px}
+#pausePanel .pauseTools button{font-size:12px;padding:6px 7px}
+@media (pointer:coarse),(max-width:760px),(max-height:520px) and (orientation:landscape){
+ body:has(#pauseRace:not([hidden])) header{inset:0 0 auto auto;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 0 0;display:block}
+ body:has(#pauseRace:not([hidden])) header a,
+ body:has(#pauseRace:not([hidden])) header nav button:not(#pauseRace){display:none}
+ body:has(#pausePanel:not([hidden])) header{display:none}
+ #pauseRace:not([hidden]){display:grid;place-items:center;width:44px;height:44px;min-height:44px;background:#18342ada;border-radius:12px;box-shadow:none}
+ .pauseText{display:none}
+ .pauseIcon{display:block;width:14px;height:16px;border-inline:4px solid #ffde98}
+ body:has(#pauseRace:not([hidden])) #hud{
+  top:max(8px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:auto;transform:none;
+  max-width:calc(100% - 68px);min-height:40px;padding:4px 8px;gap:9px;text-align:left;
+  background:#122f26bf;border-radius:10px;box-shadow:none;backdrop-filter:none;pointer-events:none
+ }
+ body:has(#pauseRace:not([hidden])) #hud>div:first-child{min-width:0}
+ body:has(#pauseRace:not([hidden])) #hud strong{font-size:17px;line-height:1.05}
+ body:has(#pauseRace:not([hidden])) #hud small{font-size:9px;line-height:1.1}
+ body:has(#pauseRace:not([hidden])) #progress{max-width:min(36vw,140px);overflow:hidden;text-overflow:ellipsis}
+ body:has(#pauseRace:not([hidden])) #hud #drift{font-size:11px}
+ body:has(#pauseRace:not([hidden])) #hud>div:last-child small{display:none}
+ body:has(#pauseRace:not([hidden])) #raceProgress{height:2px;margin-top:2px}
+}
+
+#scores .scoreEntry{display:grid;grid-template-columns:31px minmax(0,1fr) auto;align-items:center;gap:8px}#scores .scoreEntry span{float:none}#scores .scoreBadge{display:grid;place-items:center;width:31px;height:21px;overflow:hidden;border:1px solid #fff5d153;border-radius:4px;background:#ffffff0c}#scores .scoreBadge .scoreFlag{display:block;width:100%;height:100%;margin:0;border-radius:0}#scores .scoreBadge.unset{color:#c4b79b;font-size:12px}#scores .scoreDriver{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#scores .scoreTime{font-variant-numeric:tabular-nums}
+body:has(#results:not([hidden])):has(#board:not([hidden])) #results{left:calc(50% - min(20vw,205px));width:min(38vw,410px)}
+body:has(#results:not([hidden])):has(#board:not([hidden])) #board{top:50%;right:calc(50% - min(40vw,420px));transform:translateY(-50%);width:min(37vw,365px);max-height:calc(100dvh - 120px)}
+@media(max-width:620px){
+ body:has(#results:not([hidden])):has(#board:not([hidden])) #results{top:68px;left:50%;transform:translateX(-50%);width:min(420px,calc(100% - 24px));padding:13px 16px}
+ body:has(#results:not([hidden])):has(#board:not([hidden])) #resultTime{font-size:39px}
+ body:has(#results:not([hidden])):has(#board:not([hidden])) #board{top:290px;right:50%;transform:translateX(50%);width:min(420px,calc(100% - 24px));max-height:calc(100dvh - 302px)}
+}
+
+/* Give both thumbs room to reach the controls without stretching to the corners. */
+#touch{
+ left:max(clamp(24px,8vw,96px),calc(env(safe-area-inset-left) + 16px));
+ right:max(clamp(24px,8vw,96px),calc(env(safe-area-inset-right) + 16px));
+ bottom:max(clamp(38px,9dvh,75px),calc(env(safe-area-inset-bottom) + 25px));
+}
+#touch .touchActions{gap:11px;padding-bottom:5px}
+#touch .touchActions .jumpAction{
+ min-width:clamp(69px,17vw,91px);
+ height:clamp(65px,16vw,83px);
+}
+@media(max-width:375px){
+ #touch{left:max(17px,env(safe-area-inset-left));right:max(17px,env(safe-area-inset-right));gap:8px}
+ #touch .touchActions{gap:7px}
+ #touch .touchActions button{min-width:51px}
+ #touch .touchActions .jumpAction{min-width:64px}
+}
+@media (orientation:landscape) and (max-height:520px){
+ #touch{
+  left:max(clamp(40px,10vw,116px),calc(env(safe-area-inset-left) + 21px));
+  right:max(clamp(40px,10vw,116px),calc(env(safe-area-inset-right) + 21px));
+  bottom:max(clamp(30px,11dvh,62px),calc(env(safe-area-inset-bottom) + 18px));
+ }
+ #touch .touchActions .jumpAction{height:clamp(61px,18dvh,78px)}
+}
+
+#menu{
+ top:auto;bottom:clamp(10px,4dvh,39px);left:clamp(10px,4vw,55px);
+ width:min(460px,calc(100% - 20px));max-height:calc(100dvh - 65px);
+ display:flex;flex-direction:column;padding:0;overflow:hidden;
+ border:1px solid #d7c59062;border-radius:22px;
+ background:linear-gradient(145deg,#102b24f7 5%,#274b3de9 80%);
+ box-shadow:0 12px 55px #0b1e19aa
+}
+.stageIntro{position:relative;flex:none;padding:17px 19px 15px;border-bottom:1px solid #f8df9e41}
+.stageIntro::after{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#ffd281 0 28%,#ac6745 28% 35%,transparent 35%)}
+.stageTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:13px}
+.stageTop #date{margin:0;background:#ead8a916;border:1px solid #f5cf7760;color:#ffdc96;padding:6px 9px;border-radius:7px;font-size:11px}
+.stageTop #start{margin:0;width:auto;min-width:111px;min-height:44px;padding:7px 15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;border-radius:11px}
+.stageTop #start::before{content:"";width:0;height:0;border-block:6px solid transparent;border-left:9px solid currentColor}
+.stageIntro h1{font-size:clamp(26px,4.2vw,45px);line-height:1.08}
+.stageIntro p{margin:8px 0 0;line-height:1.35;color:#f1e5cb;font-size:clamp(13px,2vw,15px)}
+#raceSetup{overflow:auto;overscroll-behavior:contain;min-height:0;padding:0 19px 11px;scrollbar-width:thin;scrollbar-color:#d3ac67 #102820}
+#raceSetup summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:750;font-size:13px;padding:10px 0 3px;color:#f4db9a}
+#raceSetup summary::-webkit-details-marker{display:none}
+#raceSetup summary::after{content:"+";font-size:18px;font-weight:600}
+#raceSetup[open] summary::after{content:"−"}
+#raceSetup label{font-size:12px;color:#e8ddbe}
+#raceSetup input,#raceSetup select{background:#17362df0;border-color:#c7ca9c55;border-radius:8px;padding:8px 9px;font-size:14px}
+#raceSetup #carPicker button{min-height:38px;font-size:12px}
+#raceSetup .keyHelp{margin-top:8px;padding-top:8px;border-top:1px solid #ebd9a327}
+#pausePanel,#results,#board{border-top:3px solid #e6b560;background:linear-gradient(146deg,#132e26f6,#204438ed)}
+@media(max-height:560px){#menu{max-height:calc(100dvh - 54px);bottom:9px}.stageIntro{padding:11px 14px}.stageTop{margin-bottom:7px}.stageIntro h1{font-size:clamp(22px,3.7vw,36px)}.stageTop #start{min-height:40px}#raceSetup{padding-inline:14px}}

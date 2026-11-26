@@ -19,6 +19,25 @@ export function createVehicle(course){
   world.createCollider(RAPIER.ColliderDesc.cuboid(b.w*.5,b.h*.55,b.d*.5)
    .setTranslation(b.x,b.y+b.h*.34,b.z).setCollisionGroups(OBSTACLE));
  }
+ const bridge=course.bridgePlanks.map(deck=>{
+  const plank=world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased()
+   .setTranslation(deck.x,deck.y-.135,deck.z)
+   .setRotation({x:0,y:deck.qy,z:0,w:deck.qw}));
+  world.createCollider(RAPIER.ColliderDesc.cuboid(5.04,.135,deck.length*.5+.09).setFriction(.91).setCollisionGroups(TERRAIN),plank);
+  return {deck,plank,offset:0,speed:0};
+ });
+ if(course.bridge){
+  const [a,b]=course.gap;
+  for(let z=a-2;z<=b;z+=2){
+   const x=course.at(z).x,next=course.at(z+2).x,dx=next-x,length=Math.sqrt(dx*dx+4);
+   const w=Math.sqrt((1+2/length)/2),qy=dx/(2*length*w);
+   for(const side of [-1,1]){
+    world.createCollider(RAPIER.ColliderDesc.cuboid(.15,.51,length*.5+.08)
+     .setTranslation((x+next)*.5+side*5.06,course.roadHeight(z+1)+.53,z+1)
+     .setRotation({x:0,y:qy,z:0,w}).setCollisionGroups(OBSTACLE));
+   }
+  }
+ }
  const body=world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setCanSleep(false).setCcdEnabled(true)
   .setLinearDamping(.12).setAngularDamping(.37));
  world.createCollider(RAPIER.ColliderDesc.roundCuboid(.91,.24,1.62,.11)
@@ -40,7 +59,7 @@ export function createVehicle(course){
   vehicle.setWheelFrictionSlip(i,2.8);
   vehicle.setWheelSideFrictionStiffness(i,1);
  }
- return {world,body,vehicle,dispose(){world.removeVehicleController(vehicle);world.free();}};
+ return {world,body,vehicle,bridge,dispose(){world.removeVehicleController(vehicle);world.free();}};
 }
 export function place(sim,pose){
  const {body}=sim;
@@ -52,17 +71,38 @@ export function place(sim,pose){
  body.resetTorques(true);
 }
 export function updateVehicle(sim,control){
- const {world,body,vehicle}=sim;
+ const {world,body,vehicle,bridge}=sim;
+ if(bridge.length){
+  const car=body.translation(),q=body.rotation();
+  const forwardZ=1-2*(q.x*q.x+q.y*q.y);
+  for(const board of bridge){
+   const {deck,plank}=board;
+   let load=0;
+   if(Math.abs(car.x-deck.x)<5.3&&car.y<deck.y+1.65&&car.y>deck.y-.35){
+    for(const offset of [-1.24,1.24]){
+     const distance=Math.abs(car.z+offset*forwardZ-deck.z);
+     load+=Math.max(0,1-distance/3.1);
+    }
+   }
+   const target=-Math.min(.49,load*.31);
+   board.speed+=((target-board.offset)*94-board.speed*14)*DT;
+   board.offset+=board.speed*DT;
+   plank.setNextKinematicTranslation({x:deck.x,y:deck.y+board.offset-.135,z:deck.z});
+  }
+ }
  for(let i=0;i<4;i++){
   vehicle.setWheelSteering(i,i<2?control.angle:0);
   vehicle.setWheelEngineForce(i,control.force);
   vehicle.setWheelBrake(i,control.drift&&i<2?0:control.brake);
-  vehicle.setWheelFrictionSlip(i,control.drift&&i>=2?1.15:2.8);
-  vehicle.setWheelSideFrictionStiffness(i,control.drift&&i>=2?.60:1);
+  vehicle.setWheelFrictionSlip(i,control.drift&&i>=2?1.15:2.8-control.landing*(i>=2&&control.landingSlide?1.23:.51));
+  vehicle.setWheelSideFrictionStiffness(i,control.drift&&i>=2?.60:1-control.landing*(i>=2&&control.landingSlide?.49:.30));
  }
  if(control.launch){
   const v=body.linvel();
-  body.setLinvel({x:v.x,y:Math.max(0,v.y)+control.launch,z:v.z},true);
+  const q=body.rotation();
+  const x=2*(q.w*q.y+q.x*q.z),z=1-2*(q.x*q.x+q.y*q.y);
+  const boost=control.boost??0;
+  body.setLinvel({x:v.x+x*boost,y:Math.max(0,v.y)+control.launch,z:v.z+z*boost},true);
  }
  if(control.grounded){
   const w=body.angvel(),q=body.rotation();
@@ -73,7 +113,7 @@ export function updateVehicle(sim,control){
    const bank=upX*sz-upZ*sx, rate=w.x*sx+w.z*sz;
    const v=body.linvel(), lateral=v.x*sz-v.z*sx;
    if(!control.drift){
-    const blend=Math.max(-1.4,Math.min(1.4,lateral*.056));
+    const blend=Math.max(-1.4,Math.min(1.4,lateral*.056*(1-control.landing)));
     body.setLinvel({x:v.x-sz*blend,y:v.y,z:v.z+sx*blend},true);
     const yawDamping=Math.max(0,Math.abs(w.y)-.94)*.14;
     const pitchRate=(w.x*sz-w.z*sx)*.035;
@@ -93,7 +133,19 @@ export function updateVehicle(sim,control){
    const impulseX=(3200*(upY*sz*targetPitch-upZ)-2200*w.x)*DT;
    const impulseZ=(3200*(upX-upY*sx*targetPitch)-1600*w.z)*DT;
    const cap=n=>Math.max(-105,Math.min(105,n));
-   body.applyTorqueImpulse({x:cap(impulseX),y:cap(-510*w.y*DT),z:cap(impulseZ)},true);
+   body.applyTorqueImpulse({x:cap(impulseX),y:0,z:cap(impulseZ)},true);
+  }
+ }
+ const frontOnGround=vehicle.wheelIsInContact(0)||vehicle.wheelIsInContact(1);
+ if(!frontOnGround||control.launch){
+  const q=body.rotation(),v=body.linvel(),w=body.angvel();
+  const up=1-2*(q.x*q.x+q.z*q.z);
+  if(up>.22){
+   const forward=v.x*2*(q.w*q.y+q.x*q.z)+v.z*(1-2*(q.x*q.x+q.y*q.y));
+   const limit=control.grounded?.96:.68;
+   const wanted=Math.max(-limit,Math.min(limit,control.angle*forward*(control.grounded?.70:.46)));
+   const impulse=Math.max(-55,Math.min(55,(wanted-w.y)*(control.grounded?4100:3050)*DT));
+   body.applyTorqueImpulse({x:0,y:impulse,z:0},true);
   }
  }
  vehicle.updateVehicle(DT,RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC,0x00040001);

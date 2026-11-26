@@ -1,1 +1,1 @@
-{"name":"white-house-games","private":true,"type":"module","scripts":{"start":"node server.js"},"engines":{"node":">=20"},"dependencies":{"three":"0.180.0","@dimforge/rapier3d-compat":"0.19.3"},"optionalDependencies":{"firebase-admin":"^13.0.0"}}
+{"name":"white-house-games","private":true,"type":"module","scripts":{"start":"node server.js"},"engines":{"node":"24.x"},"dependencies":{"three":"0.180.0","@dimforge/rapier3d-compat":"0.19.3"},"optionalDependencies":{"firebase-admin":"^13.0.0"}}
