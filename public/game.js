@@ -33,11 +33,13 @@ function countryBadge(country){
  }
  return badge;
 }
+let driverKey;
 function displayScores(scores){
  el('scores').replaceChildren();
  for(const score of scores){
   const row=document.createElement('li'),entry=document.createElement('div');
   const driver=document.createElement('span'),value=document.createElement('span');
+  if(driverKey&&score.driverKey===driverKey){row.classList.add('yourScore');row.setAttribute('aria-current','true');}
   entry.className='scoreEntry';driver.className='scoreDriver';value.className='scoreTime';
   const country=normalizeCountry(score.country);
   const badge=countryBadge(country);
@@ -72,6 +74,10 @@ async function boot(){
  const replayFrame=recording?new Event('rally:replay-frame'):null;
  const replayDrivers=recording?[recording,...recordingField].sort((a,b)=>a.ms-b.ms):[];
  let replayCamera=podium?'wide':'0',replayZoom=1,replaySpeed=1;
+ let driverId=localStorage.getItem('rapier-driver');
+ if(!driverId){driverId=crypto.randomUUID();localStorage.setItem('rapier-driver',driverId);}
+ const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(driverId));
+ driverKey=Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,'0')).join('');
  displayScores(data.scores);
  if(data.practice){
   for(const id of ['boardToggle','resultBoard','pauseBoard','ghostSelect'])el(id).hidden=true;
@@ -796,7 +802,7 @@ async function boot(){
  try{const saved=JSON.parse(localStorage.getItem(ghostKey));if(validGhost(saved))personal=saved;}catch{}
  function ghostChoices(){
   const current=ghostMenu.value;
-  const options=[new Option('Live Players (saved replays)','rivals'),new Option('Solo','solo')];
+  const options=[new Option('Live Players','rivals'),new Option('Solo','solo')];
   if(personal)options.push(new Option('Personal best · '+pretty(personal.ms),'personal'));
   if(leader)options.push(new Option('Daily leader · '+leader.name,'leader'));
   ghostMenu.replaceChildren(...options);
@@ -889,8 +895,6 @@ async function boot(){
  let pausedFrom='racing';
  let rampNoticeUntil=0;
  let mode='preview',last=performance.now(),orbit=0,countdown=0,accumulator=0,serial=0,inputs=[];
- let driverId=localStorage.getItem('rapier-driver');
- if(!driverId){driverId=crypto.randomUUID();localStorage.setItem('rapier-driver',driverId);}
  el('name').value=localStorage.getItem('rapier-name')||'Rookie';
  el('date').textContent=(data.practice?'PRACTICE · ':data.preview?'TEST STAGE · ':'')+new Date(data.event.day*DAY).toISOString().slice(0,10)+' UTC';
  el('title').textContent=data.event.name;
@@ -941,14 +945,22 @@ async function boot(){
   const visual=buildCar(style,!fullColor,run.country??null);
   const tag=nameTag(run.name);
   visual.root.add(tag);
-  replays.push({run,state,visual,tag,previous:state.pose,inputs:run.inputs,delay,repeat,gridSlot:fullColor&&!podium?replays.length+1:0});
+  let tick=0;
+  while(tick< -delay&&!state.done){
+   step(state,inputCodes.indexOf(run.inputs[tick]),course);
+   tick++;
+  }
+  replays.push({run,state,visual,tag,previous:state.pose,inputs:run.inputs,delay:-tick+Math.max(delay,0),repeat,
+   gridSlot:fullColor&&!podium?replays.length+1:0});
  }
- let pendingStart=false, raceRivals=[];
+ let pendingStart=false, raceRivals=[],rivalTick=0,rivalAccumulator=0;
  async function start(){
   const name=el('name').value.trim();
   if(!name){el('raceSetup').open=true;el('name').focus();return;}
   if(pendingStart)return;
+  if(!recording)audio.start();
   const current=++serial,opponent=ghostMenu.value;
+  const fromMenu=mode==='preview';
   if(opponent==='rivals'&&mode==='preview'){
    let rivals=[];
    pendingStart=true;
@@ -966,16 +978,19 @@ async function boot(){
   if(!recording)localStorage.setItem('rapier-name',name);
   runCountry=countryPicker.value;runCar=player.value;
   car?.sim.dispose();car=makeCar(course);prior=car.pose;
-  resetGhost();
+  resetGhost();rivalTick=0;rivalAccumulator=0;
   if(opponent==='rivals'){
    const slots=Array.from({length:raceRivals.length},(_,i)=>i);
    for(let i=slots.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
     [slots[i],slots[j]]=[slots[j],slots[i]];
    }
-   const startSpacing=Math.floor(600/Math.max(1,slots.length));
-   raceRivals.forEach((run,i)=>addReplay(run,true,slots[i]*startSpacing+
-    Math.floor(Math.random()*Math.min(120,startSpacing)),true));
+   raceRivals.forEach((run,i)=>{
+    const phase=.12+.66*(slots[i]+Math.random())/slots.length;
+    const introTick=Math.floor(run.inputs.length*phase);
+    const delay=fromMenu?-introTick:slots[i]*14+Math.floor(Math.random()*14);
+    addReplay(run,true,delay,true);
+   });
   }
   for(const run of recordingField)addReplay(run,true);
   const ghostRun=opponent==='leader'?leader:opponent==='personal'?personal:null;
@@ -1041,7 +1056,9 @@ async function boot(){
   mode='finished';el('pauseRace').hidden=true;clearControls();el('touch').hidden=true;el('announce').textContent=maxTime?'TIME':'FINISH';
   el('resultHeading').textContent=maxTime?'Time limit reached':'Stage complete';
   el('resultCourse').textContent=course.event.name;el('resultTime').textContent=pretty(ms);
-  resetGhost();
+  el('resultDriver').textContent=recording?.name??(localStorage.getItem('rapier-name')||'Rookie');
+  el('resultDriver').hidden=false;
+  if(!replays.some(replay=>replay.repeat))resetGhost();
   if(!maxTime){burst();audio.finish();}
   el('resultStatus').dataset.state='pending';
   el('resultStatus').textContent=maxTime?'Start another run to set a time.':data.practice?'Practice complete.':'Verifying replay…';
@@ -1116,6 +1133,31 @@ async function boot(){
    life,maxLife:life,size:loaded?.26+effectRand()*.18:.17,smoke:false,exhaust:true
   });
  }
+ function advanceReplay(replay,tick){
+  const replayTick=tick-replay.delay;
+  if(replayTick<0)return;
+  const {visual}=replay;
+  if(replay.repeat&&!visual.root.visible){
+   replay.state=makeCar(course);
+   replay.previous=replay.state.pose;
+   visual.root.visible=true;
+  }
+  if(!visual.root.visible)return;
+  const state=replay.state;
+  const code=replay.inputs[replayTick];
+  if(code===undefined||state.done){
+   if(!podium)visual.root.visible=false;
+   if(replay.repeat){
+    state.sim.dispose();
+    replay.state=null;
+    replay.delay=tick+180+Math.floor(Math.random()*420);
+   }
+   return;
+  }
+  replay.previous=state.pose;
+  step(state,inputCodes.indexOf(code),course);
+  if(state.reset)replay.previous=state.pose;
+ }
  function frame(now){
   const dt=Math.min(.095,(now-last)/1000);last=now;orbit+=dt;
   waterMaterial.uniforms.time.value=orbit;
@@ -1125,47 +1167,30 @@ async function boot(){
    countdown-=dt;el('announce').textContent=countdown>0?String(Math.ceil(countdown)):'';
    if(countdown<=0)mode='racing';
   }
+  if(mode==='countdown'||mode==='racing'||mode==='finished'){
+   rivalAccumulator+=dt;
+   while(rivalAccumulator>=DT){
+    rivalAccumulator-=DT;
+    for(const replay of replays)if(replay.repeat)advanceReplay(replay,rivalTick);
+    rivalTick++;
+   }
+  }
   let mask=stickMask;for(const key of pressed)mask|=keys[key];for(const bit of touches.values())mask|=bit;
   if(mode==='racing'){
    accumulator+=dt*(recording?replaySpeed:1);
    while(accumulator>=DT&&mode==='racing'){
     accumulator-=DT;
-    for(const replay of replays){
-     const replayTick=inputs.length-replay.delay;
-     if(replayTick<0)continue;
-     const {visual}=replay;
-     if(replay.repeat&&!visual.root.visible){
-      replay.state=makeCar(course);
-      replay.previous=replay.state.pose;
-      visual.root.visible=true;
-     }
-     if(!visual.root.visible)continue;
-     const state=replay.state;
-     const code=replay.inputs[replayTick];
-     if(code===undefined||state.done){
-      if(!podium)visual.root.visible=false;
-      if(replay.repeat){
-       state.sim.dispose();
-       replay.state=null;
-       replay.delay=inputs.length+180+Math.floor(Math.random()*420);
-      }
-      continue;
-     }
-     replay.previous=state.pose;
-     step(state,inputCodes.indexOf(code),course);
-     if(state.reset)replay.previous=state.pose;
-    }
+    for(const replay of replays)if(!replay.repeat)advanceReplay(replay,inputs.length);
     if(recording){
      const code=recording.inputs[inputs.length];
      if(code===undefined){void finish(true);break;}
      mask=inputCodes.indexOf(code);
     }
     inputs.push(inputCodes[mask]);prior=car.pose;
-    const checkpoint=car.checkpoint,grounded=car.grounded;
+    const grounded=car.grounded;
     step(car,mask,course);
     if(car.reset)prior=car.pose;
     if(!grounded&&car.grounded&&prior.v.y<-2.3)audio.thud();
-    if(car.checkpoint>checkpoint&&checkpoint>=0)audio.checkpoint();
     if(car.rampBoost){audio.launch();rampNoticeUntil=now+850;}
     tireEffects();
     exhaustEffects(mask);
@@ -1180,11 +1205,11 @@ async function boot(){
    const deck=course.bridgePlanks[i];
    visual.position.y=car?.sim.bridge[i]?.plank.translation().y??deck.y-.135;
   }
-  for(const {visual,state,previous,gridSlot,delay} of replays){
+  for(const {visual,state,previous,gridSlot,delay,repeat} of replays){
    if(!visual.root.visible)continue;
-   drawCar(visual,previous,state.pose,alpha,state.angle);
+   drawCar(visual,previous,state.pose,repeat&&mode!=='paused'?rivalAccumulator/DT:alpha,state.angle);
    // Keep the starting grid readable, then blend into the exact recorded pose.
-   const gridBlend=1-THREE.MathUtils.smoothstep(inputs.length-delay,0,85);
+   const gridBlend=1-THREE.MathUtils.smoothstep((repeat?rivalTick:inputs.length)-delay,0,85);
    if(gridSlot&&gridBlend>0){
     const side=gridSlot%2===0?-2.6:2.6;
     const rear=-1.7-Math.floor((gridSlot-1)/2)*3.3;

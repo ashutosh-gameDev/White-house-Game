@@ -28,11 +28,8 @@ export function makeCar(course){
   jumpHeld:false,launchUsed:false,airTicks:0,landingTicks:0,drift:false,grounded:false,speed:0,forward:0,reset:false};
 }
 function recover(car,course){
- const p=course.checkpoints[car.checkpoint];
- if(p){
-  const ahead=course.at(p.z+3),dx=ahead.x-p.x,dz=3,len=Math.sqrt(dx*dx+dz*dz),qw=Math.sqrt((1+dz/len)/2);
-  place(car.sim,{x:p.x,y:p.y+1.05,z:p.z,qy:dx/(2*len*qw),qw});
- }else place(car.sim,course.spawn);
+ place(car.sim,course.spawn);
+ car.checkpoint=-1;
  car.reset=true;car.steer=0;car.angle=0;car.launchUsed=false;car.airTicks=0;car.landingTicks=0;
 }
 export function step(car,mask,course){

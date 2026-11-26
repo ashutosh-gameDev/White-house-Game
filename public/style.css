@@ -164,3 +164,22 @@ body:has(#pauseRace:not([hidden])) #hud{
 #resultStatus[data-state="error"]{color:#8a283d}
 #menu .keyHelp{color:var(--panel-muted)}
 #menu .keyHelp kbd{color:var(--panel-ink);background:#f4fbff;border-color:#b5779a}
+
+#scores li.yourScore{
+ margin-block:3px;
+ padding-inline:8px;
+ background:#fff0fa;
+ color:#65234f;
+ border:1px solid #d17ba9;
+ border-radius:8px;
+ font-weight:800;
+}
+#results #resultDriver{margin:2px 0 7px;color:var(--panel-ink);font-weight:800}
+
+.gameLinks{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.gameLinks a{
+ display:inline-flex;align-items:center;min-height:36px;padding:6px 10px;
+ border:1px solid #b5779a;border-radius:8px;background:#f4fbff;color:#65234f;
+ font-size:13px;font-weight:750;text-decoration:none
+}
+.gameLinks a:hover,.gameLinks a:focus-visible{background:#ffe3f1}

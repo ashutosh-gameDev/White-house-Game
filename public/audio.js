@@ -30,12 +30,12 @@ export function makeAudio(toggle){
   engineGain.gain.value=0;
   engineFilter=context.createBiquadFilter();
   engineFilter.type='lowpass';
-  engineFilter.Q.value=.65;
+  engineFilter.Q.value=.35;
   engineFilter.connect(engineGain).connect(master);
-  const real=new Float32Array([0,1,.18,.46,.10,.28,.08,.14,.07]);
-  const imag=new Float32Array([0,0,.36,-.13,.22,-.13,.16,-.12,.06]);
+  const real=new Float32Array([0,1,.58,.25,.12,.07,.04]);
+  const imag=new Float32Array([0,0,.12,-.17,.05,-.04,.02]);
   const pulse=context.createPeriodicWave(real,imag);
-  for(const [ratio,level,detune] of [[1,.62,0],[.5,.36,0],[1,.21,-13]]){
+  for(const [ratio,level,detune] of [[1,.48,-7],[.5,.38,0],[1,.14,11]]){
    const oscillator=context.createOscillator(),gain=context.createGain();
    oscillator.setPeriodicWave(pulse);oscillator.detune.value=detune;
    gain.gain.value=level;
@@ -62,17 +62,19 @@ export function makeAudio(toggle){
   musicFilter.type='lowpass';musicFilter.frequency.value=1900;
   musicGain.connect(musicFilter).connect(master);
  }
- toggle.onclick=async()=>{
+ let soundChosen=false;
+ async function setMuted(next){
   try{
    if(!context)initialize();
    await context.resume();
-   muted=!muted;
+   muted=next;
    master.gain.setTargetAtTime(muted?0:.65,context.currentTime,.035);
    if(!muted)nextBeat=context.currentTime+.04;
    toggle.textContent=muted?'Sound off':'Sound on';
    toggle.setAttribute('aria-pressed',String(!muted));
   }catch{toggle.textContent='Sound unavailable';}
- };
+ }
+ toggle.onclick=()=>{soundChosen=true;return setMuted(!muted);};
  function note(freq,end,start,duration,volume,type='square',destination=master,attack=.012){
   const osc=context.createOscillator(),gain=context.createGain();
   osc.type=type;osc.frequency.setValueAtTime(freq,start);
@@ -117,29 +119,32 @@ export function makeAudio(toggle){
    if(melody!==null){
     const pitch=hz(melody);
     note(pitch,pitch,swung,.37,.085,'triangle',musicGain,.017);
-    note(pitch*2,pitch*2,swung,.13,.018,'sine',musicGain,.012);
    }
    beat++;
    nextBeat+=stepLength;
   }
  }
  return {
+  start(){
+   if(soundChosen)return;
+   soundChosen=true;
+   void setMuted(false);
+  },
   update(car,mode,mask){
    if(!context||muted)return;
    const t=context.currentTime,active=mode==='racing'||mode==='countdown';
    const speed=Math.abs(car?.forward??0), load=Boolean(mask&4);
    const gear=speed<8?0:speed<15?1:speed<23?2:speed<31?3:4;
-   const rpm=Math.min(5700,850+speed*[355,245,183,150,123][gear]+(load?260:0));
-   const pulseRate=rpm/36;
-   for(const {oscillator,ratio} of cylinders)oscillator.frequency.setTargetAtTime(pulseRate*ratio,t,.065);
-   engineFilter.frequency.setTargetAtTime(82+rpm*(load?.115:.073),t,.08);
-   engineGain.gain.setTargetAtTime(active?(load?.23:.14):0,t,.10);
+   const rpm=Math.min(4600,760+speed*[320,218,164,137,118][gear]+(load?150:0));
+   const pulseRate=rpm/43;
+   for(const {oscillator,ratio} of cylinders)oscillator.frequency.setTargetAtTime(pulseRate*ratio,t,.11);
+   engineFilter.frequency.setTargetAtTime(110+rpm*(load?.060:.038),t,.12);
+   engineGain.gain.setTargetAtTime(active?(load?.28:.15):0,t,.10);
    noiseGain.gain.setTargetAtTime(active&&car?.drift?Math.min(.12,car.slip*.015):0,t,.075);
    background(t,mode);
   },
   launch(){tone(95,415,.24,.13,'sawtooth');},
   thud(){tone(110,36,.15,.35,'triangle');},
-  checkpoint(){tone(660,810,.10,.11);},
   finish(){[523,659,784,1047,784,1047].forEach((n,i)=>tone(n,n,.25,i===5?.22:.15,'square',i*.105));}
  };
 }

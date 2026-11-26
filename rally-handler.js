@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {readFile,writeFile,rename} from 'node:fs/promises';
 import {DAY,eventFor,makeCourse,regionalEvent,regions,configuredStage} from './public/course.js';
 import {normalizeCountry} from './public/countries.js';
@@ -23,7 +24,9 @@ assets.set('/vendor/three.core.js','node_modules/three/build/three.core.js');
 assets.set('/vendor/rapier.mjs','node_modules/@dimforge/rapier3d-compat/rapier.mjs');
 let cachedCourse, writes=Promise.resolve();
 const board=day=>Object.entries(scores[day]??{}).sort((a,b)=>a[1].ms-b[1].ms).slice(0,50);
-const publicBoard=rankings=>rankings.map(({name,ms,country})=>({name,ms,country:normalizeCountry(country)}));
+const publicBoard=rankings=>rankings.map(({id,name,ms,country})=>({
+ name,ms,country:normalizeCountry(country),driverKey:createHash('sha256').update(id).digest('hex')
+}));
 const rivalLimit=10;
 const carIds=new Set(['expedition','hatch','coupe','buggy','truck']);
 const normalizeCar=id=>carIds.has(id)?id:'expedition';

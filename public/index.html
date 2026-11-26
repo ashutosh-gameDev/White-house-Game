@@ -9,6 +9,7 @@
 <section class="stageIntro" aria-labelledby="title">
  <div class="stageTop"><div id="date">DAILY RALLY</div><button id="start" class="primary" form="options" type="submit" disabled>Play</button></div>
  <h1 id="title">Loading course</h1><p id="description">Generating today’s stage…</p>
+ <div class="gameLinks"><a href="https://play.google.com/store/apps/details?id=com.WhiteHouseGaming.OneMoreGame">Download app</a><a href="https://whitehousegaming.com/games/">Play more · OMG</a></div>
 </section>
 <details id="raceSetup" open><summary>Race setup</summary>
 <form id="options" novalidate><div id="regionControl" hidden><label for="regionSelect">Test region</label><select id="regionSelect"></select><label for="weatherSelect">Weather</label><select id="weatherSelect"><option value="auto">Daily weather</option><option value="clear">Sunny</option><option value="sunset">Evening sunset</option><option value="night">Night</option><option value="rain">Monsoon rain</option><option value="mist">Morning mist</option><option value="snow">Winter snow</option></select></div><div id="driverFields"><div><label for="name">Driver name</label><input id="name" value="Rookie" maxlength="20" required autocomplete="nickname"></div><div><label for="country">Country</label><select id="country"><option value="IN">India</option></select></div></div>
@@ -22,7 +23,7 @@
 <div><strong id="drift">GRIP</strong><small>TRACTION</small></div></div>
 <div id="announce" aria-live="polite"></div>
 <section id="pausePanel" class="glass" hidden aria-labelledby="pauseTitle"><h2 id="pauseTitle">Race paused</h2><div class="actions"><button id="resumeRace" class="primary">Resume</button><button id="pauseRestart">Restart</button></div><div class="actions pauseTools"><button id="pauseSound">Sound</button><button id="pauseBoard">Leaderboard</button><button id="pauseExit">Exit race</button></div></section>
-<section id="results" class="glass" hidden aria-labelledby="resultHeading"><small id="resultCourse"></small><h2 id="resultHeading">Stage complete</h2><strong id="resultTime"></strong><p id="resultStatus" aria-live="polite"></p><div class="actions"><button id="resultBoard">Leaderboard</button><button id="retry" class="primary">Race again</button></div></section>
+<section id="results" class="glass" hidden aria-labelledby="resultHeading"><small id="resultCourse"></small><h2 id="resultHeading">Stage complete</h2><strong id="resultTime"></strong><p id="resultDriver" hidden></p><p id="resultStatus" aria-live="polite"></p><div class="actions"><button id="resultBoard">Leaderboard</button><button id="retry" class="primary">Race again</button></div></section>
 <aside id="board" class="glass" hidden><div class="actions boardTitle"><h2>Daily leaderboard</h2><button id="closeBoard" aria-label="Close leaderboard">×</button></div><ol id="scores"></ol></aside>
 <div id="touch" hidden>
  <div class="stickControl">
