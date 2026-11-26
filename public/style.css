@@ -105,3 +105,39 @@ body:has(#results:not([hidden])):has(#board:not([hidden])) #board{top:50%;right:
 #joystick.held{
  transform:translate(var(--stick-base-x,0px),var(--stick-base-y,0px));
 }
+
+/* Sky-blue game panels with pink trim. */
+:root{
+ --panel-sky:#dff5ff;
+ --panel-sky-shadow:#badff6;
+ --panel-ink:#172f48;
+ --panel-muted:#334e69;
+ --panel-pink:#e48bb6;
+ --panel-accent:#822e5d;
+}
+#menu,#pausePanel,#results,#board,#hud,
+body:has(#pauseRace:not([hidden])) #hud{
+ color:var(--panel-ink);
+ background:linear-gradient(145deg,var(--panel-sky),var(--panel-sky-shadow));
+ border:2px solid var(--panel-pink);
+}
+#menu .stageIntro{border-bottom-color:#dba3c1}
+.stageIntro::after{background:linear-gradient(90deg,#e48bb6,#f5b5d2 35%,transparent 90%)}
+.stageTop #date{
+ color:var(--panel-accent);
+ background:#ffeff7;
+ border-color:#d68bb0;
+}
+#menu p,#menu small,#results p,#results small,#hud small,#raceSetup label{color:var(--panel-muted)}
+#raceSetup summary,#resultTime,#hud #drift.sliding,#scores .scoreBadge.unset{color:var(--panel-accent)}
+#raceSetup{scrollbar-color:#bf759e #e7f7ff}
+#raceSetup .keyHelp{border-top-color:#dba3c1}
+#raceSetup input,#raceSetup select{
+ color:var(--panel-ink);
+ background:#f4fbff;
+ border-color:#b5779a;
+}
+#scores .scoreBadge{border-color:#b5779a;background:#f2faff}
+:is(#menu,#board,#results,#pausePanel) :is(button,input,select):focus-visible{
+ outline-color:var(--panel-accent);
+}

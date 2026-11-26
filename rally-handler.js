@@ -24,7 +24,7 @@ assets.set('/vendor/rapier.mjs','node_modules/@dimforge/rapier3d-compat/rapier.m
 let cachedCourse, writes=Promise.resolve();
 const board=day=>Object.entries(scores[day]??{}).sort((a,b)=>a[1].ms-b[1].ms).slice(0,50);
 const publicBoard=rankings=>rankings.map(({name,ms,country})=>({name,ms,country:normalizeCountry(country)}));
-const rivalLimit=3;
+const rivalLimit=10;
 const carIds=new Set(['expedition','hatch','coupe','buggy','truck']);
 const normalizeCar=id=>carIds.has(id)?id:'expedition';
 const publicReplay=({name,ms,inputs,country,car})=>({name,ms,inputs,country:normalizeCountry(country),car:normalizeCar(car)});

@@ -796,7 +796,7 @@ async function boot(){
  try{const saved=JSON.parse(localStorage.getItem(ghostKey));if(validGhost(saved))personal=saved;}catch{}
  function ghostChoices(){
   const current=ghostMenu.value;
-  const options=[new Option('Recorded Rivals','rivals'),new Option('Solo','solo')];
+  const options=[new Option('Live Players (saved replays)','rivals'),new Option('Solo','solo')];
   if(personal)options.push(new Option('Personal best · '+pretty(personal.ms),'personal'));
   if(leader)options.push(new Option('Daily leader · '+leader.name,'leader'));
   ghostMenu.replaceChildren(...options);
@@ -935,13 +935,13 @@ async function boot(){
   }
   replays.length=0;
  }
- function addReplay(run,fullColor){
+ function addReplay(run,fullColor,delay=0){
   const state=makeCar(course);
   const style=Object.hasOwn(carStyles,run.car)?run.car:fullColor?'expedition':runCar;
   const visual=buildCar(style,!fullColor,run.country??null);
   const tag=nameTag(run.name);
   visual.root.add(tag);
-  replays.push({run,state,visual,tag,previous:state.pose,inputs:run.inputs,gridSlot:fullColor&&!podium?replays.length+1:0});
+  replays.push({run,state,visual,tag,previous:state.pose,inputs:run.inputs,delay,gridSlot:fullColor&&!podium?replays.length+1:0});
  }
  let pendingStart=false, raceRivals=[];
  async function start(){
@@ -967,7 +967,14 @@ async function boot(){
   runCountry=countryPicker.value;runCar=player.value;
   car?.sim.dispose();car=makeCar(course);prior=car.pose;
   resetGhost();
-  if(opponent==='rivals')for(const run of raceRivals)addReplay(run,true);
+  if(opponent==='rivals'){
+   const slots=Array.from({length:raceRivals.length},(_,i)=>i);
+   for(let i=slots.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [slots[i],slots[j]]=[slots[j],slots[i]];
+   }
+   raceRivals.forEach((run,i)=>addReplay(run,true,slots[i]*14+Math.floor(Math.random()*14)));
+  }
   for(const run of recordingField)addReplay(run,true);
   const ghostRun=opponent==='leader'?leader:opponent==='personal'?personal:null;
   if(ghostRun)addReplay(ghostRun,false);
@@ -1124,7 +1131,9 @@ async function boot(){
     for(const replay of replays){
      const {state,visual}=replay;
      if(!visual.root.visible)continue;
-     const code=replay.inputs[inputs.length];
+     const replayTick=inputs.length-replay.delay;
+     if(replayTick<0)continue;
+     const code=replay.inputs[replayTick];
      if(code===undefined||state.done){if(!podium)visual.root.visible=false;continue;}
      replay.previous=state.pose;
      step(state,inputCodes.indexOf(code),course);
@@ -1155,14 +1164,14 @@ async function boot(){
    const deck=course.bridgePlanks[i];
    visual.position.y=car?.sim.bridge[i]?.plank.translation().y??deck.y-.135;
   }
-  for(const {visual,state,previous,gridSlot} of replays){
+  for(const {visual,state,previous,gridSlot,delay} of replays){
    if(!visual.root.visible)continue;
    drawCar(visual,previous,state.pose,alpha,state.angle);
    // Keep the starting grid readable, then blend into the exact recorded pose.
-   const gridBlend=1-THREE.MathUtils.smoothstep(inputs.length,0,85);
+   const gridBlend=1-THREE.MathUtils.smoothstep(inputs.length-delay,0,85);
    if(gridSlot&&gridBlend>0){
-    const side=gridSlot===2?-2.6:2.6;
-    const rear=gridSlot===3?-5:-1.7;
+    const side=gridSlot%2===0?-2.6:2.6;
+    const rear=-1.7-Math.floor((gridSlot-1)/2)*3.3;
     const sin=2*spawn.qw*spawn.qy,cos=1-2*spawn.qy*spawn.qy;
     visual.root.position.x+=(side*cos+rear*sin)*gridBlend;
     visual.root.position.z+=(rear*cos-side*sin)*gridBlend;
