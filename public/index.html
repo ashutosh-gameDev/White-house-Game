@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>White House Games | Daily Rally</title><link rel="stylesheet" href="/style.css">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js","@dimforge/rapier3d-compat":"/vendor/rapier.mjs"}}</script>
+</head><body>
+<canvas id="world" aria-label="Daily rally course"></canvas>
+<header><a href="/">WHITE HOUSE <strong>GAMES</strong></a><nav aria-label="Game controls"><button id="back" hidden>Back</button><button id="restart" aria-keyshortcuts="R" title="Restart race (R)" hidden>Restart</button><button id="pauseRace" aria-keyshortcuts="Escape" hidden>Pause</button><button id="audio" aria-pressed="false">Sound off</button><button id="boardToggle" aria-expanded="false">Leaderboard</button></nav></header>
+<main id="menu" class="glass"><div id="date">DAILY RALLY</div><h1 id="title">Loading course</h1><p id="description">Generating today’s stage…</p>
+<form id="options"><div id="driverFields"><div><label for="name">Driver name</label><input id="name" value="Rookie" maxlength="20" required autocomplete="nickname"></div><div><label for="country">Country</label><select id="country"><option value="IN">India</option></select></div></div>
+<label for="carSelect">Car</label><div id="carPicker"><select id="carSelect"><option value="expedition">Expedition 4×4</option><option value="hatch">Rally Hatch</option><option value="coupe">Sport Coupe</option><option value="buggy">Desert Buggy</option><option value="truck">Baja Truck</option></select><button type="button" id="previewCar">Preview</button></div>
+<label for="ghostSelect">Race against</label><select id="ghostSelect"><option value="solo">Solo</option></select>
+<button id="start" class="primary" disabled>Start race</button></form>
+<div class="keyHelp" aria-label="Keyboard controls"><span><kbd>WASD</kbd> Drive</span><span><kbd>Shift</kbd> Drift</span><span><kbd>Space</kbd> Jump</span><span><kbd>R</kbd> Restart</span><span><kbd>Esc</kbd> Pause</span></div></main>
+<div id="hud" class="glass" hidden>
+<div><strong id="timer">0:00.000</strong><small id="progress">0% complete</small><progress id="raceProgress" max="100" value="0" aria-label="Course progress"></progress></div>
+<div><strong id="speed">0</strong><small id="surface">km/h</small></div>
+<div><strong id="drift">GRIP</strong><small>TRACTION</small></div></div>
+<div id="announce" aria-live="polite"></div>
+<section id="pausePanel" class="glass" hidden aria-labelledby="pauseTitle"><h2 id="pauseTitle">Race paused</h2><div class="actions"><button id="resumeRace" class="primary">Resume</button><button id="pauseRestart">Restart</button></div></section>
+<section id="results" class="glass" hidden aria-labelledby="resultHeading"><small id="resultCourse"></small><h2 id="resultHeading">Stage complete</h2><strong id="resultTime"></strong><p id="resultStatus" aria-live="polite"></p><div class="actions"><button id="resultBoard">Leaderboard</button><button id="retry" class="primary">Race again</button></div></section>
+<aside id="board" class="glass" hidden><div class="actions boardTitle"><h2>Daily leaderboard</h2><button id="closeBoard" aria-label="Close leaderboard">×</button></div><ol id="scores"></ol></aside>
+<div id="touch" hidden>
+ <div class="stickControl">
+  <div id="joystick" role="group" aria-label="Drive joystick. Up accelerates, down brakes or reverses, left and right steer.">
+   <span class="stickArrow up" aria-hidden="true"></span><span class="stickArrow down" aria-hidden="true"></span>
+   <span class="stickArrow left" aria-hidden="true"></span><span class="stickArrow right" aria-hidden="true"></span>
+   <span id="stickKnob" aria-hidden="true"></span>
+  </div>
+  <span class="touchCaption">DRIVE</span>
+ </div>
+ <div class="touchActions">
+  <button class="driftAction" type="button" data-mask="16"><span aria-hidden="true">≈</span>Drift</button>
+  <button class="jumpAction" type="button" data-mask="32"><span aria-hidden="true">↑</span>Jump</button>
+ </div>
+</div>
+<script type="module" src="/game.js"></script></body></html>
