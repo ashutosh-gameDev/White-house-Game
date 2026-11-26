@@ -13,7 +13,7 @@ button{border:1px solid #a8c8a85c;border-bottom:3px solid #102c23;border-radius:
 @media (pointer:coarse),(max-width:760px),(max-height:520px) and (orientation:landscape){
  body:has(#pauseRace:not([hidden])) header{inset:0 0 auto auto;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 0 0;display:block}
  body:has(#pauseRace:not([hidden])) header a,
- body:has(#pauseRace:not([hidden])) header nav button:not(#pauseRace){display:none}
+ body:has(#pauseRace:not([hidden])) header nav button:not(#pauseRace):not(#restart){display:none}
  body:has(#pausePanel:not([hidden])) header{display:none}
  #pauseRace:not([hidden]){display:grid;place-items:center;width:44px;height:44px;min-height:44px;background:#18342ada;border-radius:12px;box-shadow:none}
  .pauseText{display:none}
@@ -94,3 +94,14 @@ body:has(#results:not([hidden])):has(#board:not([hidden])) #board{top:50%;right:
 #raceSetup .keyHelp{margin-top:8px;padding-top:8px;border-top:1px solid #ebd9a327}
 #pausePanel,#results,#board{border-top:3px solid #e6b560;background:linear-gradient(146deg,#132e26f6,#204438ed)}
 @media(max-height:560px){#menu{max-height:calc(100dvh - 54px);bottom:9px}.stageIntro{padding:11px 14px}.stageTop{margin-bottom:7px}.stageIntro h1{font-size:clamp(22px,3.7vw,36px)}.stageTop #start{min-height:40px}#raceSetup{padding-inline:14px}}
+
+/* Let the first touch anywhere on the left half set the joystick center. */
+#touch .stickControl::before{
+ content:"";
+ position:fixed;
+ inset:max(56px,calc(env(safe-area-inset-top) + 52px)) 50% 0 0;
+ touch-action:none;
+}
+#joystick.held{
+ transform:translate(var(--stick-base-x,0px),var(--stick-base-y,0px));
+}

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {DT,inputCodes,FINISH_GATE,makeCourse,mulberry32,palettes,regions} from './course.js';
+import {DAY,DT,inputCodes,FINISH_GATE,makeCourse,mulberry32,palettes,regions} from './course.js';
 import {ready,clock,makeCar,step} from './race.js';
 import {wheels} from './vehicle.js';
 import {makeAudio} from './audio.js';
@@ -48,8 +48,15 @@ function displayScores(scores){
 }
 const regionQuery=new URLSearchParams(location.search);
 const eventSuffix=regionQuery.has('region')?'?'+new URLSearchParams({region:regionQuery.get('region')}):'';
+const practiceDate=regionQuery.get('practice');
+const eventQuery=new URLSearchParams(eventSuffix);
+if(practiceDate!==null){
+ for(const key of ['practice','terrain','curves','light','season','weather','obstacles','draft','rank']){
+  if(regionQuery.has(key))eventQuery.set(key,regionQuery.get(key));
+ }
+}
 const fetchEvent=async()=>{
- const response=await fetch('/api/event'+eventSuffix);
+ const response=await fetch('/api/event?'+eventQuery);
  if(!response.ok)throw Error('Could not load the daily event.');
  return response.json();
 };
@@ -59,7 +66,17 @@ boot().catch(error=>{
 });
 async function boot(){
  const [data]=await Promise.all([fetchEvent(),ready]);
+ const recording=data.practice?data.replay:null;
+ const recordingField=recording?data.field??[]:[];
+ const podium=recording?data.podium:null;
+ const replayFrame=recording?new Event('rally:replay-frame'):null;
+ const replayDrivers=recording?[recording,...recordingField].sort((a,b)=>a.ms-b.ms):[];
+ let replayCamera=podium?'wide':'0',replayZoom=1,replaySpeed=1;
  displayScores(data.scores);
+ if(data.practice){
+  for(const id of ['boardToggle','resultBoard','pauseBoard','ghostSelect'])el(id).hidden=true;
+  document.querySelector('label[for="ghostSelect"]').hidden=true;
+ }
  const countryPicker=el('country');
  const selectedCountry=normalizeCountry(localStorage.getItem('rapier-country'))??'IN';
  countryPicker.replaceChildren(...Object.entries(countries).map(([code,name])=>new Option(name,code)));
@@ -74,7 +91,16 @@ async function boot(){
  renderer.toneMapping=THREE.ACESFilmicToneMapping;
  renderer.toneMappingExposure=1.12;
  const course=makeCourse(data.event),region=course.region;
- const palette=region?{...region,trees:region.treesColor}:palettes[data.event.biome];
+ const palette={...(region?{...region,trees:region.treesColor}:palettes[data.event.biome])};
+ if(data.options?.season){
+  const seasonColors={
+   spring:{meadow:0x89a760,trees:[0x639443,0x85a758,0xccaa55]},
+   summer:{meadow:0xa6a356,trees:[0x527441,0x759749,0xc39d48]},
+   autumn:{meadow:0xb49760,trees:[0xbe6a38,0xd8a44c,0x98623c]},
+   winter:{meadow:0xc8ced0,trees:[0x516b63,0x657b75,0x81938d]}
+  };
+  if(Object.hasOwn(seasonColors,data.options?.season))Object.assign(palette,seasonColors[data.options.season]);
+ }
  if(data.preview){
   const picker=el('regionSelect');
   picker.replaceChildren(...Object.entries(regions).map(([id,entry])=>new Option(entry.label,id)));
@@ -97,7 +123,8 @@ async function boot(){
   ['northeast','plains'].includes(data.event.region)&&weatherRoll<6?'rain':
   weatherRoll===8||weatherRoll===9?'mist':weatherRoll===10?'sunset':weatherRoll===11?'night':'clear';
  const weatherPicker=el('weatherSelect');
- let activeWeather=region?dailyWeather:'clear';
+ const stageOptions=data.options??{};
+ let activeWeather=stageOptions.weather??(region?dailyWeather:'clear');
  scene.background=new THREE.Color(palette.sky);
  scene.fog=new THREE.Fog(palette.sky,115,345);
  const camera=new THREE.PerspectiveCamera(55,1,.25,900);
@@ -273,7 +300,8 @@ async function boot(){
   scene.fog.color.copy(scene.background);scene.fog.near=profile.near;scene.fog.far=profile.far;
   waterMaterial.uniforms.fogRange.value.set(profile.near,profile.far);
   sun.intensity=profile.sun;
-  const night=activeWeather==='night', dusk=activeWeather==='sunset';
+  const light=stageOptions.light??activeWeather;
+  const night=light==='night', dusk=light==='sunset';
   sunlight.visible=activeWeather==='clear'||activeWeather==='mist'||dusk;
   sunlight.position.y=dusk?44:105;
   sunlight.material.color.setHex(dusk?0xffab61:0xffffff);
@@ -283,7 +311,7 @@ async function boot(){
   skyLight.intensity=night?.83:dusk?1.23:1.88;
   sun.color.setHex(night?0xadc7ff:dusk?0xff9f55:0xffd498);
   rain.visible=activeWeather==='rain';snow.visible=activeWeather==='snow';
-  leaves.visible=activeWeather==='clear'||activeWeather==='mist';
+  leaves.visible=stageOptions.season==='autumn'||(!stageOptions.season&&(activeWeather==='clear'||activeWeather==='mist'));
   const colorData=terrainColors.array;
   for(let i=0;i<colorData.length;i+=3){
    frostMix.setRGB(originalTerrainColors[i],originalTerrainColors[i+1],originalTerrainColors[i+2]);
@@ -751,6 +779,8 @@ async function boot(){
  const player=el('carSelect');
  const saved=localStorage.getItem('rapier-car-v2');
  if(Object.hasOwn(carStyles,saved))player.value=saved;
+ if(recording&&Object.hasOwn(carStyles,recording.car))player.value=recording.car;
+ if(recording&&normalizeCountry(recording.country))countryPicker.value=recording.country;
  let model=buildCar(player.value);
  let previewClose=performance.now()+6500;
  el('previewCar').onclick=()=>{previewClose=performance.now()+6500;};
@@ -772,7 +802,7 @@ async function boot(){
   ghostMenu.replaceChildren(...options);
   ghostMenu.value=options.some(option=>option.value===current)?current:leader?'leader':'solo';
  }
- ghostChoices();ghostMenu.value='rivals';
+ ghostChoices();ghostMenu.value=data.practice?'solo':'rivals';
  const rivalStatus=el('rivalStatus');
  let rivalRequest=null,rivalExpires=0;
  function loadRivals(){
@@ -807,12 +837,16 @@ async function boot(){
  const replays=[];
  const pressed=new Set(),touches=new Map();
  const joystick=el('joystick');
+ const stickControl=joystick.parentElement;
+ let stickOriginX=0,stickOriginY=0,stickRadius=0;
  let stickPointer=null,stickMask=0;
  const actionButtons=[...el('touch').querySelectorAll('button')];
  function releaseStick(){
   const pointer=stickPointer;
   stickPointer=null;stickMask=0;
   joystick.classList.remove('held');
+  joystick.style.removeProperty('--stick-base-x');
+  joystick.style.removeProperty('--stick-base-y');
   joystick.style.setProperty('--stick-x','0px');
   joystick.style.setProperty('--stick-y','0px');
   if(pointer!==null&&joystick.hasPointerCapture(pointer))joystick.releasePointerCapture(pointer);
@@ -823,9 +857,9 @@ async function boot(){
  }
  function moveStick(event){
   if(event.pointerId!==stickPointer)return;
-  const bounds=joystick.getBoundingClientRect(),radius=bounds.width*.42;
-  const x=(event.clientX-bounds.left-bounds.width*.5)/radius;
-  const y=(event.clientY-bounds.top-bounds.height*.5)/radius;
+  const radius=stickRadius;
+  const x=(event.clientX-stickOriginX)/radius;
+  const y=(event.clientY-stickOriginY)/radius;
   const magnitude=Math.max(1,Math.hypot(x,y)),nx=x/magnitude,ny=y/magnitude;
   const left=nx<-(stickMask&1?.19:.31),right=nx>(stickMask&2?.19:.31);
   const gas=ny<-(stickMask&4?.18:.29),brake=ny>(stickMask&8?.18:.29);
@@ -833,11 +867,18 @@ async function boot(){
   joystick.style.setProperty('--stick-x',nx*radius*.71+'px');
   joystick.style.setProperty('--stick-y',ny*radius*.71+'px');
  }
- joystick.addEventListener('pointerdown',event=>{
+ stickControl.addEventListener('pointerdown',event=>{
   if(stickPointer!==null||event.button!==0)return;
   event.preventDefault();
-  stickPointer=event.pointerId;joystick.setPointerCapture(stickPointer);
-  joystick.classList.add('held');moveStick(event);
+  const bounds=joystick.getBoundingClientRect();
+  stickOriginX=event.clientX;
+  stickOriginY=event.clientY;
+  stickRadius=bounds.width*.42;
+  joystick.style.setProperty('--stick-base-x',stickOriginX-bounds.left-bounds.width*.5+'px');
+  joystick.style.setProperty('--stick-base-y',stickOriginY-bounds.top-bounds.height*.5+'px');
+  stickPointer=event.pointerId;
+  joystick.setPointerCapture(stickPointer);
+  joystick.classList.add('held');
  });
  joystick.addEventListener('pointermove',moveStick);
  for(const type of ['pointerup','pointercancel','lostpointercapture']){
@@ -851,7 +892,7 @@ async function boot(){
  let driverId=localStorage.getItem('rapier-driver');
  if(!driverId){driverId=crypto.randomUUID();localStorage.setItem('rapier-driver',driverId);}
  el('name').value=localStorage.getItem('rapier-name')||'Rookie';
- el('date').textContent=data.preview?'TEST STAGE':new Date(data.event.day*86400000).toISOString().slice(0,10)+' UTC';
+ el('date').textContent=(data.practice?'PRACTICE · ':data.preview?'TEST STAGE · ':'')+new Date(data.event.day*DAY).toISOString().slice(0,10)+' UTC';
  el('title').textContent=data.event.name;
  el('description').textContent=(course.event.length/1000).toFixed(2)+' km · '+(region?.features??'Point-to-point rally');
  el('start').disabled=false;
@@ -900,16 +941,16 @@ async function boot(){
   const visual=buildCar(style,!fullColor,run.country??null);
   const tag=nameTag(run.name);
   visual.root.add(tag);
-  replays.push({state,visual,tag,previous:state.pose,inputs:run.inputs,gridSlot:fullColor?replays.length+1:0});
+  replays.push({run,state,visual,tag,previous:state.pose,inputs:run.inputs,gridSlot:fullColor&&!podium?replays.length+1:0});
  }
- let pendingStart=false;
+ let pendingStart=false, raceRivals=[];
  async function start(){
   const name=el('name').value.trim();
   if(!name){el('raceSetup').open=true;el('name').focus();return;}
   if(pendingStart)return;
   const current=++serial,opponent=ghostMenu.value;
-  let rivals=[];
-  if(opponent==='rivals'){
+  if(opponent==='rivals'&&mode==='preview'){
+   let rivals=[];
    pendingStart=true;
    el('start').disabled=true;
    showRivalStatus('Loading recorded runs…');
@@ -918,14 +959,16 @@ async function boot(){
    catch{rivalRequest=null;unavailable=true;}
    finally{pendingStart=false;el('start').disabled=false;}
    if(current!==serial)return;
+   raceRivals=rivals;
    showRivalStatus(unavailable?'Rivals unavailable. Starting solo.':rivals.length?'':'No other runs yet. Starting solo.');
   }
   inputs=[];accumulator=0;rampNoticeUntil=0;
-  localStorage.setItem('rapier-name',name);
+  if(!recording)localStorage.setItem('rapier-name',name);
   runCountry=countryPicker.value;runCar=player.value;
   car?.sim.dispose();car=makeCar(course);prior=car.pose;
   resetGhost();
-  if(opponent==='rivals')for(const run of rivals)addReplay(run,true);
+  if(opponent==='rivals')for(const run of raceRivals)addReplay(run,true);
+  for(const run of recordingField)addReplay(run,true);
   const ghostRun=opponent==='leader'?leader:opponent==='personal'?personal:null;
   if(ghostRun)addReplay(ghostRun,false);
   for(const mark of marks)mark.visible=false;
@@ -935,7 +978,7 @@ async function boot(){
   clearControls();
   mode='countdown';countdown=3;
   el('pausePanel').hidden=true;el('pauseRace').hidden=false;
-  el('menu').hidden=true;el('results').hidden=true;el('hud').hidden=false;el('touch').hidden=false;el('back').hidden=false;el('restart').hidden=false;
+  el('menu').hidden=true;el('results').hidden=true;el('hud').hidden=false;el('touch').hidden=Boolean(recording);el('back').hidden=false;el('restart').hidden=false;
   el('timer').textContent='0:00.000';el('progress').textContent='0% complete';el('raceProgress').value=0;el('speed').textContent='0';el('drift').textContent='GRIP';el('drift').classList.remove('sliding');
   toggleBoard(false);el('announce').textContent='3';el('start').blur();el('restart').blur();el('retry').blur();
   const facing=new THREE.Vector3(0,0,1).applyQuaternion(new THREE.Quaternion(0,spawn.qy,0,spawn.qw));
@@ -952,7 +995,7 @@ async function boot(){
  function pause(){
   if(mode==='paused'){
    mode=pausedFrom;toggleBoard(false);
-   el('pausePanel').hidden=true;el('pauseRace').hidden=false;el('hud').hidden=false;el('touch').hidden=false;
+   el('pausePanel').hidden=true;el('pauseRace').hidden=false;el('hud').hidden=false;el('touch').hidden=Boolean(recording);
    el('pauseRace').blur();
    return;
   }
@@ -974,7 +1017,7 @@ async function boot(){
   if(key==='r'&&!event.repeat&&mode!=='preview')start();
  });
  window.addEventListener('keyup',event=>pressed.delete(event.key.length===1?event.key.toLowerCase():event.key));
- window.addEventListener('blur',()=>{clearControls();if(mode==='racing')pause();});
+ window.addEventListener('blur',()=>{clearControls();if(mode==='racing'&&!recording)pause();});
  for(const button of actionButtons){
   button.addEventListener('pointerdown',event=>{
    event.preventDefault();button.setPointerCapture(event.pointerId);
@@ -992,14 +1035,15 @@ async function boot(){
   resetGhost();
   if(!maxTime){burst();audio.finish();}
   el('resultStatus').dataset.state='pending';
-  el('resultStatus').textContent=maxTime?'Start another run to set a time.':'Verifying replay…';
+  el('resultStatus').textContent=maxTime?'Start another run to set a time.':data.practice?'Practice complete.':'Verifying replay…';
   setTimeout(()=>{
    if(serial!==current)return;
    el('announce').textContent='';el('results').hidden=false;
    if(el('resultStatus').dataset.state==='verified')toggleBoard(true);
    el('retry').focus();
   },maxTime?450:1450);
-  if(maxTime)return;
+  if(recording)window.dispatchEvent(new CustomEvent('rally:replay-finished',{detail:{ms,finished:!maxTime}}));
+  if(maxTime||data.practice)return;
   const name=localStorage.getItem('rapier-name')||'Rookie';
   try{
    const response=await fetch('/api/result'+eventSuffix,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:data.event.day,id:driverId,name,country:runCountry,car:runCar,inputs:encoded})});
@@ -1074,17 +1118,22 @@ async function boot(){
   }
   let mask=stickMask;for(const key of pressed)mask|=keys[key];for(const bit of touches.values())mask|=bit;
   if(mode==='racing'){
-   accumulator+=dt;
+   accumulator+=dt*(recording?replaySpeed:1);
    while(accumulator>=DT&&mode==='racing'){
     accumulator-=DT;
     for(const replay of replays){
      const {state,visual}=replay;
      if(!visual.root.visible)continue;
      const code=replay.inputs[inputs.length];
-     if(code===undefined||state.done){visual.root.visible=false;continue;}
+     if(code===undefined||state.done){if(!podium)visual.root.visible=false;continue;}
      replay.previous=state.pose;
      step(state,inputCodes.indexOf(code),course);
      if(state.reset)replay.previous=state.pose;
+    }
+    if(recording){
+     const code=recording.inputs[inputs.length];
+     if(code===undefined){void finish(true);break;}
+     mask=inputCodes.indexOf(code);
     }
     inputs.push(inputCodes[mask]);prior=car.pose;
     const checkpoint=car.checkpoint,grounded=car.grounded;
@@ -1095,7 +1144,8 @@ async function boot(){
     if(car.rampBoost){audio.launch();rampNoticeUntil=now+850;}
     tireEffects();
     exhaustEffects(mask);
-    if(car.done)void finish();
+    if(podium&&inputs.length===recording.inputs.length)void finish(!car.done);
+    else if(!podium&&car.done)void finish();
     else if(inputs.length>=14400)void finish(true);
    }
   }
@@ -1159,7 +1209,44 @@ async function boot(){
    const length=13+Math.min(5,car.speed*.13);
    desired.copy(p).addScaledVector(forwardVec,-length);desired.y+=8;
    look.copy(p).addScaledVector(forwardVec,8+car.speed*.13);look.y+=.7;
-   spring(camera.position,camVelocity,desired,6.6,dt);spring(camTarget,lookVelocity,look,7.2,dt);camera.lookAt(camTarget);
+   if(recording&&mode!=='finished'){
+    if(replayCamera==='wide'){
+     const active=[];
+     if(!car.done)active.push(p);
+     for(const replay of replays){
+      if(!replay.state.done&&inputs.length<=replay.inputs.length)active.push(replay.visual.root.position);
+     }
+     if(!active.length)active.push(p);
+     let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity,maxY=-Infinity;
+     for(const point of active){
+      minX=Math.min(minX,point.x);maxX=Math.max(maxX,point.x);
+      minZ=Math.min(minZ,point.z);maxZ=Math.max(maxZ,point.z);
+      maxY=Math.max(maxY,point.y);
+     }
+     const x=(minX+maxX)/2,z=(minZ+maxZ)/2;
+     const span=Math.max((maxX-minX+20)/Math.max(.44,camera.aspect),maxZ-minZ+26);
+     const height=Math.max(38,span*1.2)*replayZoom;
+     desired.set(x+height*.07,maxY+height,z-height*.32);
+     look.set(x,maxY-1,z);
+    }else{
+     const selected=replayDrivers[Number(replayCamera)];
+     const selectedReplay=replays.find(replay=>replay.run===selected);
+     const target=selectedReplay?.visual.root??model.root;
+     forwardVec.set(0,0,1).applyQuaternion(target.quaternion);
+     forwardVec.y=0;
+     if(forwardVec.lengthSq()>.01)forwardVec.normalize();else forwardVec.set(0,0,1);
+     desired.copy(target.position).addScaledVector(forwardVec,-19*replayZoom);
+     desired.y+=12*replayZoom;
+     look.copy(target.position).addScaledVector(forwardVec,4);
+     look.y+=1;
+    }
+   }
+   if(podium&&mode==='finished'){
+    const z=course.event.length,finishPoint=course.at(z);
+    desired.set(finishPoint.x+22,course.roadHeight(z)+49,z-35);
+    look.set(finishPoint.x,course.roadHeight(z),z-12);
+   }
+   spring(camera.position,camVelocity,desired,podium&&mode==='finished'?2.4:6.6,dt);spring(camTarget,lookVelocity,look,7.2,dt);camera.lookAt(camTarget);
    const fov=52+Math.min(14,car.speed*.39);
    camera.fov+=(fov-camera.fov)*(1-Math.exp(-dt*4.8));
    el('timer').textContent=pretty(clock(inputs.length));
@@ -1168,6 +1255,12 @@ async function boot(){
    el('progress').textContent=car.missedCheckpoint?'Missed checkpoint · turn back':progress+'% complete';
    el('speed').textContent=Math.round(car.speed*3.6);el('surface').textContent=now<rampNoticeUntil?'RAMP BOOST':car.grounded?'km/h':'AIRBORNE';
    el('drift').textContent=car.drift?'DRIFTING':'GRIP';el('drift').classList.toggle('sliding',car.drift);
+  }
+  if(recording){
+   const profile=weatherKinds[activeWeather];
+   const range=replayCamera==='wide'&&mode!=='finished'?Math.max(0,camera.position.distanceTo(camTarget)-45):0;
+   scene.fog.near=profile.near+range;
+   scene.fog.far=profile.far+range;
   }
   camera.updateProjectionMatrix();
   const lightZ=mode==='preview'?camera.position.z+65:p.z;
@@ -1181,7 +1274,8 @@ async function boot(){
   }
   leaves.instanceMatrix.needsUpdate=true;
   clouds.position.x=Math.sin(orbit*.028)*13;
-  const night=activeWeather==='night',dusk=activeWeather==='sunset';
+  const light=stageOptions.light??activeWeather;
+  const night=light==='night',dusk=light==='sunset';
   const lights=night?135:dusk?46:activeWeather==='rain'||activeWeather==='mist'?37:0;
   for(const beam of model.beams)beam.intensity=lights;
   lamp.emissiveIntensity=night?2.7:dusk?1.8:.62;
@@ -1190,7 +1284,16 @@ async function boot(){
   sun.target.position.set(mode==='preview'?course.at(lightZ).x:p.x,4,lightZ);
   audio.update(car,mode,mask);
   drawWeather(mode==='preview'?camera.position:p,orbit);
-  renderer.render(scene,camera);requestAnimationFrame(frame);
+  renderer.render(scene,camera);
+  if(replayFrame)window.dispatchEvent(replayFrame);
+  requestAnimationFrame(frame);
  }
+ if(recording)window.dispatchEvent(new CustomEvent('rally:replay-ready',{detail:{
+  start,resize,run:recording,stage:course.event.name,podium,
+  drivers:replayDrivers.map(({name,ms})=>({name,ms})),
+  setCamera:value=>{replayCamera=value;},
+  setZoom:value=>{replayZoom=value;},
+  setSpeed:value=>{replaySpeed=value;}
+ }}));
  requestAnimationFrame(frame);
 }

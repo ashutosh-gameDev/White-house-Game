@@ -35,6 +35,27 @@ export function regionalEvent(base,region){
  const settings=regions[region];
  return {...base,region,seed:(base.seed^Math.imul(Object.keys(regions).indexOf(region)+1,0x9e3779b1))>>>0,length:settings.length,name:settings.name};
 }
+export function stageSettings(values={}){
+ const settings={};
+ for(const [key,max] of [['curves',10],['obstacles',50]]){
+  const value=values[key];
+  if((typeof value==='number'||typeof value==='string')&&/^\d+$/.test(String(value))&&Number(value)<=max)settings[key]=Number(value);
+ }
+ for(const [key,choices] of [
+  ['terrain',Object.keys(regions)],['season',['spring','summer','autumn','winter']],
+  ['light',['clear','sunset','night']],['weather',['clear','rain','snow','mist']]
+ ]){
+  if(choices.includes(values[key]))settings[key]=values[key];
+ }
+ return settings;
+}
+export function configuredStage(base,values){
+ const {terrain,curves,obstacles,season,light,weather}=stageSettings(values);
+ const event=terrain?regionalEvent(base,terrain):{...base};
+ if(curves!==undefined)event.curves=curves;
+ if(obstacles!==undefined)event.obstacles=obstacles;
+ return {event,options:{season,light,weather:weather??(season==='winter'?'snow':season?'clear':undefined)}};
+}
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const ease=t=>t*t*(3-2*t);
@@ -103,6 +124,13 @@ export function makeCourse(event){
  const rampsByRegion={plains:[110],kutch:[406],northeast:[114,400],thar:[106,226,418],himachal:[92,366],ladakh:[174,396]};
  const extras=region?[54,Math.round(event.length*.66/2)*2,event.length-54]:[];
  const rampCenters=[...(rampsByRegion[event.region]??[96,event.length-98]),...extras].filter(z=>Math.abs(z-gap[0])>24);
+ if(Number.isInteger(event.curves)&&event.curves>=0&&event.curves<=10){
+  const amplitude=Math.min(region?.bend??28,event.length/(Math.max(1,event.curves)*3));
+  for(const [i,point] of controls.entries()){
+   point.x=amplitude*Math.sin(Math.PI*event.curves*i/count);
+  }
+ }
+
  const at=z=>{
   const k=clamp(z/span,0,count),i=Math.min(count-1,Math.floor(k)),t=k-i;
   const a=controls[Math.max(0,i-1)],b=controls[i],c=controls[i+1],d=controls[Math.min(count,i+2)];
@@ -231,7 +259,8 @@ export function makeCourse(event){
   buildings.push({x,y,z,w:4.1+random()*2,d:4.3+random()*2,h:(region?4.8:2.6)+random()*(region?2.4:1.1),side,tone:i%3});
  }
  const props=[];
- for(let i=0;i<430;i++){
+ const obstacleTarget=event.obstacles??Infinity;
+ for(let i=0;i<(event.obstacles===undefined?430:20000)&&props.length<obstacleTarget;i++){
   const z=-16+random()*(event.length+32),x=at(z).x+(random()-.5)*114;
   const shortcut=shortcutAt(z);
   if(shortcut&&Math.abs(x-shortcut.x)<5.8)continue;

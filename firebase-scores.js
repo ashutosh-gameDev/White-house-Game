@@ -8,9 +8,33 @@ export async function firebaseScores() {
  });
  const db=getFirestore(app);
  const boardFor=day=>db.collection('dailyRallyRapierV9').doc(String(day));
+ const maps=db.collection('gameSchedules').doc('daily-rally').collection('stages');
+ const schedules=new Map();
  const snapshots=new Map();
  const snapshotTtl=45_000;
  return {
+  schedule(day,{fresh=false}={}){
+   if(fresh)return maps.doc(String(day)).get().then(doc=>doc.data()?.settings??null);
+   const now=Date.now();
+   for(const [key,cached] of schedules){
+    if(cached.until<=now)schedules.delete(key);
+   }
+   const previous=schedules.get(day);
+   if(previous)return previous.value;
+   const value=maps.doc(String(day)).get().then(doc=>doc.data()?.settings??null).catch(error=>{
+    if(schedules.get(day)?.value===value)schedules.delete(day);
+    throw error;
+   });
+   schedules.set(day,{until:now+60_000,value});
+   return value;
+  },
+  async publishStage(day,settings){
+   await db.runTransaction(async tx=>{
+    if(day<=Math.floor(Date.now()/86400000))throw Error('Only future UTC stages can be published.');
+    tx.set(maps.doc(String(day)),{settings});
+   });
+   schedules.delete(day);
+  },
   snapshot(day,limit){
    const now=Date.now();
    for(const [key,entry] of snapshots){

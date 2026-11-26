@@ -85,35 +85,31 @@ export function step(car,mask,course){
  if(next.y<.26&&course.heightAt(next.x,next.z)<0){
   recover(car,course);car.pose=snapshot(car);return;
  }
- const cp=course.checkpoints[car.checkpoint+1];
- if(cp&&next.z>=cp.z){
-  const crossed=previous.p.z<cp.z;
-  const fraction=crossed?(cp.z-previous.p.z)/(next.z-previous.p.z):1;
-  const x=previous.p.x+(next.x-previous.p.x)*fraction;
-  const z=crossed?cp.z:next.z;
-  const alternative=course.shortcutAt(z);
-  const permitted=Boolean(course.region)||Math.abs(x-course.at(z).x)<=22||alternative&&Math.abs(x-alternative.x)<5;
-  if(permitted&&course.heightAt(x,z)>0&&next.z<=cp.z+24){
-   car.checkpoint++;
-  }else if(next.z>cp.z+24){
+ // Progress follows the course along z. A shortcut can rejoin after a missed sample.
+ const {checkpoints}=course;
+ if(checkpoints[car.checkpoint+1]?.z<=next.z){
+  if(course.heightAt(next.x,next.z)>0){
+   while(checkpoints[car.checkpoint+1]?.z<=next.z)car.checkpoint++;
+  }else{
    car.missedCheckpoint=true;
   }
  }
- const finish=course.event.length+FINISH_GATE.crossingOffset;
- if(course.region&&next.z>=finish&&next.z<=finish+3.5){
-  const inside=Math.abs(next.x-course.at(finish).x)<=FINISH_GATE.postOffset-FINISH_GATE.postWidth*.5;
-  if(inside&&car.checkpoint>=course.checkpoints.length-2){car.done=true;return;}
- }
- if(previous.p.z>=finish||next.z<finish)return;
- const fraction=(finish-previous.p.z)/(next.z-previous.p.z);
- const crossingX=previous.p.x+(next.x-previous.p.x)*fraction;
- const inside=Math.abs(crossingX-course.at(finish).x)<=FINISH_GATE.postOffset-FINISH_GATE.postWidth/2;
- if(!inside)return;
- if(car.checkpoint>=course.checkpoints.length-2){
-  car.done=true;
- }else{
-  car.missedCheckpoint=true;
- }
+ if(!entersFinishGate(course,previous.p,next))return;
+ if(car.checkpoint>=checkpoints.length-2)car.done=true;
+ else car.missedCheckpoint=true;
+}
+export function entersFinishGate(course,previous,next){
+ const line=course.event.length;
+ const start=line+FINISH_GATE.crossingOffset,end=start+3.5;
+ const dz=next.z-previous.z;
+ if(dz<0||next.z<start||previous.z>end)return false;
+ const entry=dz===0?0:clamp((start-previous.z)/dz,0,1);
+ const exit=dz===0?1:clamp((end-previous.z)/dz,0,1);
+ const center=course.at(line).x;
+ const dx=next.x-previous.x;
+ const first=previous.x+dx*entry-center,last=previous.x+dx*exit-center;
+ const half=FINISH_GATE.postOffset-FINISH_GATE.postWidth/2;
+ return Math.min(first,last)<half&&Math.max(first,last)>-half;
 }
 export function verify(course,inputs){
  const car=makeCar(course);

@@ -1,5 +1,5 @@
 import {readFile,writeFile,rename} from 'node:fs/promises';
-import {DAY,eventFor,makeCourse,regionalEvent,regions} from './public/course.js';
+import {DAY,eventFor,makeCourse,regionalEvent,regions,configuredStage} from './public/course.js';
 import {normalizeCountry} from './public/countries.js';
 import {ready,verify} from './public/race.js';
 
@@ -72,11 +72,12 @@ export async function handleRequest(req,res,endpoint){
   if(process.env.VERCEL&&!cloud)return json(res,503,{error:'Leaderboard storage is not configured.'});
   const requested=url.searchParams.get('region');
   const region=Object.hasOwn(regions,requested)?requested:'plains';
-  const event=previewEvent?regionalEvent(previewEvent,region):eventFor();
+  const base=previewEvent?regionalEvent(previewEvent,region):eventFor();
+  const {event,options}=!previewEvent&&cloud?configuredStage(base,await cloud.schedule(base.day)??{}):{event:base};
   const boardKey=previewEvent?event.day+'-'+region:event.day;
   if(req.method==='GET'&&path==='/api/event'){
    const board=await snapshot(boardKey);
-   return json(res,200,{event,preview:Boolean(previewEvent),scores:publicBoard(board.rankings),ghost:ghost(board)});
+   return json(res,200,{event,options,preview:Boolean(previewEvent),scores:publicBoard(board.rankings),ghost:ghost(board)});
   }
   if(req.method==='GET'&&path==='/api/rivals'){
    const driver=url.searchParams.get('driver');
@@ -98,7 +99,7 @@ export async function handleRequest(req,res,endpoint){
     !/^[a-f0-9-]{36}$/.test(id)||typeof inputs!=='string'||!/^[0-9a-zA-Z_-]{60,14400}$/.test(inputs)){
     return json(res,400,{error:'Invalid run or driver name.'});
    }
-   if(cachedCourse?.event.seed!==event.seed)cachedCourse=makeCourse(event);
+   if(!cachedCourse||JSON.stringify(cachedCourse.event)!==JSON.stringify(event))cachedCourse=makeCourse(event);
    const ms=verify(cachedCourse,inputs);
    if(ms===null)return json(res,422,{error:'The replay did not finish the stage.'});
    const car=normalizeCar(run.car);
