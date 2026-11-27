@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Touch Red | White House Games</title>
+<link rel="stylesheet" href="/elastic-aim/game.css">
+</head>
+<body>
+<main>
+ <header><a href="/games?game=elastic">‹ Games</a><h1>Touch Red</h1><button id="sound" type="button" aria-pressed="false">Sound off</button></header>
+ <div class="stats"><strong id="puzzle"></strong><span id="hits"></span></div>
+ <canvas id="table" aria-label="Touch Red table"></canvas>
+ <footer>
+  <p id="status" role="status"></p>
+  <div class="actions"><button id="reset" type="button">Reset shot</button><button id="board" type="button">Leaderboard</button></div>
+ </footer>
+</main>
+<dialog id="leaderboard" aria-labelledby="leaderboard-title">
+ <form method="dialog"><h2 id="leaderboard-title">Daily leaderboard</h2><button aria-label="Close leaderboard">Close</button></form>
+ <section id="finish" hidden>
+  <h3>Congrats!</h3>
+  <p id="finish-score"></p>
+  <p id="finish-status" role="status"></p>
+  <button id="play-again" type="button">Play again</button>
+ </section>
+ <label id="player-label">Player name <input id="player" maxlength="20" autocomplete="nickname"></label>
+ <p id="board-status" role="status"></p>
+ <ol id="scores"></ol>
+</dialog>
+<script type="module" src="/elastic-aim/game.js"></script>
+</body>
+</html>

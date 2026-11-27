@@ -22,6 +22,14 @@
     {
       "source": "/games",
       "destination": "/games/index.html"
+    },
+    {
+      "source": "/elastic-aim",
+      "destination": "/elastic-aim/index.html"
+    },
+    {
+      "source": "/touch-red",
+      "destination": "/elastic-aim/index.html"
     }
   ]
 }

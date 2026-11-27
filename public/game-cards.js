@@ -2,7 +2,8 @@ export const games=[
  {id:'rally',title:'Daily Rally',href:'/',board:'/api/event'},
  {id:'glider',title:'Space Glider',href:'/space-glider',board:'/api/glider'},
  {id:'rail',title:'Spiral Rail',href:'/spiral-rail'},
- {id:'jelly',title:'Pathru',href:'/pathru',board:'/api/jelly'}
+ {id:'jelly',title:'Pathru',href:'/pathru',board:'/api/jelly'},
+ {id:'elastic',title:'Touch Red',href:'/touch-red',board:'/api/touch-red'}
 ];
 
 if(location.pathname!=='/practice'){

@@ -6,6 +6,9 @@ import {ready,verify} from './public/race.js';
 import {MAX_TICKS,flightDay,flightSeed,verifyFlight} from './public/space-glider/flight.js';
 import {MAX_INPUT_SIZE,climbSeed,verifyClimb} from './public/jelly-hop/climb.js';
 
+import {rankTouchRed} from './touch-red-scores.js';
+import {utcDay,verifyShot} from './public/elastic-aim/physics.js';
+
 await ready;
 const previewOffset=Number(process.env.RALLY_PREVIEW_OFFSET??0);
 if(!Number.isInteger(previewOffset)||Math.abs(previewOffset)>365)throw Error('Invalid RALLY_PREVIEW_OFFSET');
@@ -25,6 +28,10 @@ assets.set('/space-glider','public/space-glider/index.html');
 assets.set('/spiral-rail','public/spiral-rail/index.html');
 assets.set('/jelly-hop','public/jelly-hop/index.html');
 assets.set('/pathru','public/jelly-hop/index.html');
+assets.set('/elastic-aim','public/elastic-aim/index.html');
+assets.set('/touch-red','public/elastic-aim/index.html');
+assets.set('/elastic-aim/','public/elastic-aim/index.html');
+for(const file of ['index.html','game.css','game.js','physics.js'])assets.set('/elastic-aim/'+file,'public/elastic-aim/'+file);
 assets.set('/pathru/','public/jelly-hop/index.html');
 assets.set('/games','public/games/index.html');
 assets.set('/games/','public/games/index.html');
@@ -137,6 +144,52 @@ async function handleFlight(req,res,url,game){
  }
  return json(res,200,{...publicFlight(day,rows,id,seed),distance});
 }
+let touchRedCache;
+let localTouchRed;
+async function handleTouchRed(req,res,url){
+ const day=utcDay();
+ if(process.env.VERCEL&&!cloud)return json(res,503,{error:'Leaderboard storage is not configured.'});
+ if(localTouchRed?.day!==day)localTouchRed={day,runs:[]};
+ const respond=(runs,id,extra={})=>{
+  const rank=runs.findIndex(row=>row.id===id)+1;
+  return json(res,200,{day,rank:rank||null,scores:runs.map(({name,hits})=>({name,hits})),...extra});
+ };
+ if(req.method==='GET'){
+  if(cloud&&(!touchRedCache||touchRedCache.day!==day||touchRedCache.until<=Date.now())){
+   const entry={day,until:Date.now()+45_000};
+   entry.rows=cloud.touchRedBoard(day).catch(error=>{
+    if(touchRedCache===entry)touchRedCache=null;
+    throw error;
+   });
+   touchRedCache=entry;
+  }
+  return respond(cloud?await touchRedCache.rows:localTouchRed.runs,url.searchParams.get('driver'));
+ }
+ if(req.method!=='POST')return json(res,405,{error:'Method not allowed.'});
+ let raw='';
+ for await(const chunk of req){
+  raw+=chunk;
+  if(raw.length>512)return json(res,413,{error:'Shot payload too large.'});
+ }
+ let shot;
+ try{shot=JSON.parse(raw);}catch{return json(res,400,{error:'Invalid shot.'});}
+ if(shot?.day!==day)return json(res,409,{error:'A new UTC table is ready. Reload to play it.'});
+ const {id,name,angle,speed,ticks}=shot;
+ if(typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id)||typeof name!=='string'||!name.trim()||name.length>20){
+  return json(res,400,{error:'Invalid driver.'});
+ }
+ const hits=verifyShot(day,angle,speed,ticks);
+ if(hits===null)return json(res,422,{error:'The shot did not clear the table.'});
+ const run={id,name:name.trim(),hits};
+ if(cloud){
+  const rows=await cloud.saveTouchRed(day,run);
+  touchRedCache=null;
+  return respond(rows,id,{hits});
+ }
+ localTouchRed.runs=rankTouchRed(localTouchRed.runs,run);
+ return respond(localTouchRed.runs,id,{hits});
+}
+
 export async function handleRequest(req,res,endpoint){
  try{
   const url=new URL(req.url,'http://localhost'),path=endpoint??url.pathname;
@@ -147,6 +200,7 @@ export async function handleRequest(req,res,endpoint){
     'Cache-Control':vendor?'public, max-age=86400':'no-cache'});
    return res.end(data);
   }
+  if(path==='/api/touch-red')return await handleTouchRed(req,res,url);
   if(path==='/api/glider'||path==='/api/jelly')return await handleFlight(req,res,url,path.slice(5));
   if(process.env.VERCEL&&!cloud)return json(res,503,{error:'Leaderboard storage is not configured.'});
   const requested=url.searchParams.get('region');

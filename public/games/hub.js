@@ -14,6 +14,7 @@ async function showBoard(){
  const token=++request,game=games.find(game=>game.id===picker.value);
  list.replaceChildren();
  if(!game.board){
+  if(game.id!=='rail'){status.textContent='This game has no leaderboard.';return;}
   let score=0;
   try{score=Number(localStorage.getItem('spiral-rail-best'))||0;}catch{}
   status.textContent='High score on this device: '+score+' m';
@@ -40,7 +41,7 @@ async function showBoard(){
     flag.setAttribute('role','img');flag.setAttribute('aria-label',countries[country]);
     row.append(flag);
    }
-   value.textContent=game.id==='rally'?prettyTime(score.ms):score.distance+' m';
+   value.textContent=game.id==='elastic'?score.hits+' white hits':game.id==='rally'?prettyTime(score.ms):score.distance+' m';
    row.append(score.name,value);
    return row;
   }));

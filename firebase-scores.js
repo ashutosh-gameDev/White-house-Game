@@ -1,3 +1,5 @@
+import {rankTouchRed} from './touch-red-scores.js';
+
 export async function firebaseScores() {
  const {applicationDefault, cert, initializeApp} = await import('firebase-admin/app');
  const {getFirestore} = await import('firebase-admin/firestore');
@@ -12,8 +14,21 @@ export async function firebaseScores() {
  const schedules=new Map();
  const snapshots=new Map();
  const flights=(day,game)=>db.collection(game==='jelly'?'jellyHopClimbV4':'spaceGliderDailyV3').doc(String(day));
+ const touchRed=day=>db.collection('touchRedDailyStop').doc(String(day));
  const snapshotTtl=45_000;
  return {
+  async touchRedBoard(day){
+   return (await touchRed(day).get()).data()?.runs??[];
+  },
+  saveTouchRed(day,run){
+   const board=touchRed(day);
+   return db.runTransaction(async tx=>{
+    const rows=(await tx.get(board)).data()?.runs??[];
+    const next=rankTouchRed(rows,run);
+    if(next!==rows)tx.set(board,{runs:next});
+    return next;
+   });
+  },
   async flightBoard(day,game){
    return (await flights(day,game).get()).data()?.runs??[];
   },

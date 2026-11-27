@@ -90,3 +90,12 @@
 }
 
 .game-logo--jelly{filter:grayscale(1)}
+
+.game-logo--elastic{background:linear-gradient(135deg,#536985,#192638)}
+.game-logo--elastic::before{
+ inset:14%;border:1px solid #b7cce6;border-radius:5px;
+ background:radial-gradient(circle at 22% 72%,#fa474e 0 9%,transparent 10%),
+ radial-gradient(circle at 77% 24%,#fa474e 0 9%,transparent 10%),
+ radial-gradient(circle at 46% 56%,#fff 0 7%,transparent 8%),
+ radial-gradient(circle at 67% 74%,#fff 0 6%,transparent 7%),#1c2f44
+}
