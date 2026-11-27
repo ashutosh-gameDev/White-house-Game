@@ -11,8 +11,24 @@ export async function firebaseScores() {
  const maps=db.collection('gameSchedules').doc('daily-rally').collection('stages');
  const schedules=new Map();
  const snapshots=new Map();
+ const flights=day=>db.collection('spaceGliderDailyV3').doc(String(day));
  const snapshotTtl=45_000;
  return {
+  async gliderBoard(day){
+   return (await flights(day).get()).data()?.runs??[];
+  },
+  saveGlider(day,run){
+   const board=flights(day);
+   return db.runTransaction(async tx=>{
+    const rows=(await tx.get(board)).data()?.runs??[];
+    const previous=rows.find(row=>row.id===run.id);
+    if(previous?.distance>=run.distance)return rows;
+    const next=[...rows.filter(row=>row.id!==run.id),run].sort((a,b)=>b.distance-a.distance).slice(0,20);
+    if(!next.includes(run))return rows;
+    tx.set(board,{runs:next});
+    return next;
+   });
+  },
   schedule(day,{fresh=false}={}){
    if(fresh)return maps.doc(String(day)).get().then(doc=>doc.data()?.settings??null);
    const now=Date.now();

@@ -802,9 +802,9 @@ async function boot(){
  try{const saved=JSON.parse(localStorage.getItem(ghostKey));if(validGhost(saved))personal=saved;}catch{}
  function ghostChoices(){
   const current=ghostMenu.value;
-  const options=[new Option('Live Players','rivals'),new Option('Solo','solo')];
+  const options=[new Option('Solo','solo'),new Option('Ghost','leader'),new Option('Live Players','rivals')];
   if(personal)options.push(new Option('Personal best · '+pretty(personal.ms),'personal'));
-  if(leader)options.push(new Option('Daily leader · '+leader.name,'leader'));
+  if(!leader)options[1].textContent='Ghost (no saved run yet)';
   ghostMenu.replaceChildren(...options);
   ghostMenu.value=options.some(option=>option.value===current)?current:leader?'leader':'solo';
  }

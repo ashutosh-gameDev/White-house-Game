@@ -38,7 +38,7 @@ body:has(#results:not([hidden])):has(#board:not([hidden])) #board{top:50%;right:
 @media(max-width:620px){
  body:has(#results:not([hidden])):has(#board:not([hidden])) #results{top:68px;left:50%;transform:translateX(-50%);width:min(420px,calc(100% - 24px));padding:13px 16px}
  body:has(#results:not([hidden])):has(#board:not([hidden])) #resultTime{font-size:39px}
- body:has(#results:not([hidden])):has(#board:not([hidden])) #board{top:290px;right:50%;transform:translateX(50%);width:min(420px,calc(100% - 24px));max-height:calc(100dvh - 302px)}
+ body:has(#results:not([hidden])):has(#board:not([hidden])) #board{top:350px;right:50%;transform:translateX(50%);width:min(420px,calc(100% - 24px));max-height:calc(100dvh - 362px)}
 }
 
 /* Give both thumbs room to reach the controls without stretching to the corners. */

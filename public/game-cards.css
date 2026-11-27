@@ -1,0 +1,64 @@
+.game-shelf{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(165px,100%),1fr));gap:8px;
+ margin-top:10px
+}
+.game-shelf[hidden]{display:none}
+.game-card{
+ display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:10px;
+ min-height:76px;padding:5px 10px 5px 5px;border:1px solid #8c9ec6;border-radius:12px;
+ background:#1c2d4b;color:#f6f8ff;text-align:left;text-decoration:none
+}
+.game-card:hover{background:#304771;border-color:#fcc0df}
+.game-card:focus-visible{outline:3px solid #e88dbb;outline-offset:2px}
+.game-card strong{font-size:15px;line-height:1.15;text-wrap:balance}
+.game-card-arrow{color:#ffc0e1;font-size:19px}
+.game-logo{
+ display:grid;place-items:center;position:relative;overflow:hidden;
+ width:64px;height:64px;border-radius:9px;border:1px solid #ffffff38
+}
+.game-logo-mark,.game-logo::before,.game-logo::after{position:absolute;display:block}
+.game-logo::before,.game-logo::after{content:""}
+.game-logo--glider{
+ background:radial-gradient(circle at 18% 24%,#f3f7ff 0 1px,transparent 2px),
+  radial-gradient(circle at 80% 20%,#a9ede9 0 1px,transparent 2px),
+  radial-gradient(circle at 77% 69%,#d0b6ff 0 1px,transparent 2px),
+  linear-gradient(145deg,#44276f,#102a4e 74%)
+}
+.game-logo--glider::before{
+ inset:15px 8px 18px;z-index:1;
+ clip-path:polygon(50% 0,100% 100%,53% 78%,50% 51%,47% 78%,0 100%);
+ background:linear-gradient(90deg,#cb94ff 0 49%,#d4edff 50% 100%)
+}
+.game-logo--glider::after{
+ inset:33px 14px 8px;
+ clip-path:polygon(0 0,19% 0,29% 100%,47% 0,72% 0,76% 100%,89% 0,100% 0,77% 100%,71% 100%,60% 15%,31% 100%,22% 100%);
+ background:linear-gradient(#ffb5f4,#ef66ff 40%,transparent)
+}
+.game-logo--rally{
+ background:linear-gradient(155deg,#edfaff 0 26%,#98c4bc 27% 42%,#426b62 43% 100%)
+}
+.game-logo--rally::before{
+ inset:0;
+ clip-path:polygon(51% 31%,59% 31%,91% 100%,9% 100%);
+ background:linear-gradient(#e5be89,#cf8b51)
+}
+.game-logo--rally .game-logo-mark{
+ width:30px;height:19px;top:28px;left:16px;z-index:1;
+ border-radius:4px;background:#ed6955;border:2px solid #3f282b;transform:rotate(-14deg);
+ box-shadow:-3px 4px 0 -1px #262437,4px 4px 0 -1px #262437
+}
+.game-logo--rally .game-logo-mark::before{
+ content:"";position:absolute;top:-8px;left:4px;width:17px;height:9px;
+ border:2px solid #572c30;border-radius:4px 4px 0 0;background:#b4e4f4
+}
+.game-logo--rally .game-logo-mark::after{
+ content:"";position:absolute;inset:6px 2px 2px;
+ background:linear-gradient(90deg,#fff0a6 0 20%,transparent 21% 79%,#fff0a6 80% 100%)
+}
+@media(max-height:520px){
+ .game-card{min-height:57px;grid-template-columns:45px minmax(0,1fr) auto}
+ .game-logo{width:45px;height:45px}
+ .game-logo--glider::before{inset:9px 5px 11px}
+ .game-logo--glider::after{inset:22px 9px 5px}
+ .game-logo--rally .game-logo-mark{left:8px;top:20px;transform:rotate(-14deg) scale(.78)}
+}
