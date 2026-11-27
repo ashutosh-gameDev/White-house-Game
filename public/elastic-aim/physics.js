@@ -104,13 +104,14 @@ export function stepTable(table,onImpact){
 
 export const MAX_VERIFY_TICKS = 600 / STEP;
 export const utcDay = () => Math.floor(Date.now() / 86400000);
+export const TABLE_COUNT=layouts.length*4;
 export function dailyTable(day) {
  const layout = layouts[day % layouts.length];
  const orientation = Math.floor(day / layouts.length) % 4;
  const points=layout.points.map(([x,y]) => [
   orientation & 1 ? WIDTH-x : x, orientation & 2 ? HEIGHT-y : y
  ]);
- return makeTable({points,pickups:placePickups(points,day%80)});
+ return makeTable({points,pickups:placePickups(points,day%TABLE_COUNT)});
 }
 export function verifyShot(day, angle, speed, ticks) {
  if (!Number.isSafeInteger(ticks) || ticks<1 || ticks>MAX_VERIFY_TICKS) return null;

@@ -1,4 +1,4 @@
-import {WIDTH,HEIGHT,PICKUP_RADIUS,STEP,MAX_VERIFY_TICKS,utcDay,dailyTable,shoot,stepTable} from './physics.js';
+import {WIDTH,HEIGHT,PICKUP_RADIUS,STEP,TABLE_COUNT,MAX_VERIFY_TICKS,utcDay,dailyTable,shoot,stepTable} from './physics.js';
 import {makeAudio} from '/audio.js';
 import {bindPlayerName,savePlayerName} from '/player-name.js';
 
@@ -8,6 +8,8 @@ const canvas=el('table'),ctx=canvas.getContext('2d');
 const music=makeAudio(el('sound'));
 const dialog=el('leaderboard'),player=el('player');
 const day=utcDay();
+let practiceTable=null;
+const playedTables=new Set([day%TABLE_COUNT]);
 const dateLabel=new Date(day*86400000).toISOString().slice(0,10)+' UTC';
 let driver=crypto.randomUUID();
 try{
@@ -37,7 +39,12 @@ function update(){
 }
 function reset(){
  revision++;
- table=dailyTable(day);
+ table=dailyTable(practiceTable??day);
+ const practice=practiceTable!==null;
+ el('puzzle').textContent=practice?'Random practice':dateLabel;
+ el('daily-level').hidden=!practice;
+ el('board').hidden=practice;
+ el('random-level').textContent=practice?'New level':'Random level';
  const [cue,target]=table.balls;
  angle=Math.atan2(target.y-cue.y,target.x-cue.x);
  mode='aim';pointer=null;speed=510;ticks=0;accumulator=0;
@@ -94,6 +101,21 @@ addEventListener('keydown',event=>{
  }else if(event.code==='Space'&&!event.repeat){event.preventDefault();launch();}
 });
 el('reset').onclick=reset;
+el('random-level').onclick=()=>{
+ if(playedTables.size===TABLE_COUNT){
+  playedTables.clear();
+  playedTables.add(day%TABLE_COUNT);
+  if(practiceTable!==null)playedTables.add(practiceTable);
+ }
+ const available=Array.from({length:TABLE_COUNT},(_,index)=>index).filter(index=>!playedTables.has(index));
+ practiceTable=available[Math.floor(Math.random()*available.length)];
+ playedTables.add(practiceTable);
+ reset();
+};
+el('daily-level').onclick=()=>{
+ practiceTable=null;
+ reset();
+};
 async function requestBoard(shot){
  const response=await fetch('/api/touch-red?driver='+encodeURIComponent(driver),shot?{
   method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(shot)
@@ -140,6 +162,10 @@ async function endShot(){
  el('reset').textContent='Play again';
  const score=table.hits+' white '+(table.hits===1?'hit':'hits');
  el('status').textContent=score;
+ if(practiceTable!==null){
+  el('status').textContent='Congrats! '+score+'.';
+  return;
+ }
  el('finish-score').textContent=score;
  showBoard(true);
  if(ticks>MAX_VERIFY_TICKS){
@@ -254,6 +280,5 @@ function frame(now){
  }
  render();requestAnimationFrame(frame);
 }
-el('puzzle').textContent=dateLabel;
 reset();
 requestAnimationFrame(frame);
