@@ -6,6 +6,14 @@
     {
       "source": "/space-glider",
       "destination": "/space-glider/index.html"
+    },
+    {
+      "source": "/spiral-rail",
+      "destination": "/spiral-rail/index.html"
+    },
+    {
+      "source": "/jelly-hop",
+      "destination": "/jelly-hop/index.html"
     }
   ]
 }

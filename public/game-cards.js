@@ -1,6 +1,8 @@
 const games=[
  {id:'rally',title:'Daily Rally',href:'/'},
- {id:'glider',title:'Space Glider',href:'/space-glider'}
+ {id:'glider',title:'Space Glider',href:'/space-glider'},
+ {id:'rail',title:'Spiral Rail',href:'/spiral-rail'},
+ {id:'jelly',title:'Jelly Hop',href:'/jelly-hop'}
 ];
 
 if(location.pathname!=='/practice'){

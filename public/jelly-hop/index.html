@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f1835">
+<title>Jelly Hop | White House Games</title>
+<link rel="stylesheet" href="/game-cards.css">
+<link rel="stylesheet" href="/jelly-hop/game.css">
+</head>
+<body>
+<canvas id="game" aria-label="Jelly Hop endless climb"></canvas>
+<header><a href="/">← Daily Rally</a><div id="stats">Height 0 m · Best 0 m</div><button id="restart" type="button" hidden>Restart</button></header>
+<div id="notice" role="status" aria-live="polite"></div>
+<main id="panel">
+ <h1>Jelly Hop</h1>
+ <p>Hop around solid ledges and see how high your little rock can climb.</p>
+ <div class="setup">
+  <label>Pilot name <input id="pilot" maxlength="20" value="Jelly"></label>
+  <label>Play mode <select id="mode"><option value="solo">Solo</option><option value="ghost">Ghost</option></select></label>
+ </div>
+ <button id="play" type="button" disabled>Climb</button>
+ <button id="board" type="button" aria-expanded="false" aria-controls="leaderboard">Leaderboard</button>
+ <p><small>Pull back and release to hop in the opposite direction. On a keyboard, aim with ← / → and press Space.</small></p>
+ <nav class="game-shelf" data-other-games="jelly" aria-label="Other games" hidden></nav>
+</main>
+<aside id="leaderboard" hidden aria-labelledby="boardTitle"><div><h2 id="boardTitle">Daily heights</h2><button id="closeBoard" aria-label="Close leaderboard">×</button></div><ol id="scores"></ol></aside>
+<button id="save" type="button" hidden>Save height</button>
+<script type="module" src="/game-cards.js"></script>
+<script type="module" src="/jelly-hop/game.js"></script>
+</body>
+</html>

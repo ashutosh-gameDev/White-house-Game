@@ -11,14 +11,14 @@ export async function firebaseScores() {
  const maps=db.collection('gameSchedules').doc('daily-rally').collection('stages');
  const schedules=new Map();
  const snapshots=new Map();
- const flights=day=>db.collection('spaceGliderDailyV3').doc(String(day));
+ const flights=(day,game)=>db.collection(game==='jelly'?'jellyHopClimbV3':'spaceGliderDailyV3').doc(String(day));
  const snapshotTtl=45_000;
  return {
-  async gliderBoard(day){
-   return (await flights(day).get()).data()?.runs??[];
+  async flightBoard(day,game){
+   return (await flights(day,game).get()).data()?.runs??[];
   },
-  saveGlider(day,run){
-   const board=flights(day);
+  saveFlight(day,run,game){
+   const board=flights(day,game);
    return db.runTransaction(async tx=>{
     const rows=(await tx.get(board)).data()?.runs??[];
     const previous=rows.find(row=>row.id===run.id);

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Spiral Rail | White House Games</title>
+<link rel="stylesheet" href="/space-glider/game.css">
+<link rel="stylesheet" href="/game-cards.css">
+<link rel="stylesheet" href="/spiral-rail/game.css">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="city" aria-label="Spiral Rail track view"></canvas>
+<header><a href="/">← Daily Rally</a><span>WHITE HOUSE GAMES</span></header>
+<aside id="flight" aria-label="Run stats">
+ <div><small>Distance</small><strong id="distance">0 m</strong></div>
+ <div><small>Dodged</small><strong id="speed">0</strong></div>
+ <div><small>Gems</small><strong id="gems">0</strong></div>
+</aside>
+<main id="panel">
+ <h1 id="heading">Spiral Rail</h1>
+ <p id="message">Switch lanes to dodge triangles and collect gems.</p>
+ <p id="best"></p>
+ <button id="play" disabled>Start rolling</button>
+ <small>Press Space or tap the play area to switch sides.</small>
+ <nav class="game-shelf" data-other-games="rail" aria-label="Other games" hidden></nav>
+</main>
+<button id="switchSide" type="button" hidden>Switch side</button>
+<script type="module" src="/game-cards.js"></script>
+<script type="module" src="/spiral-rail/game.js"></script>
+</body>
+</html>

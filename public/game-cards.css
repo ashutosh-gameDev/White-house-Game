@@ -62,3 +62,29 @@
  .game-logo--glider::after{inset:22px 9px 5px}
  .game-logo--rally .game-logo-mark{left:8px;top:20px;transform:rotate(-14deg) scale(.78)}
 }
+
+.game-logo--rail{background:linear-gradient(145deg,#503b73,#2a203e)}
+.game-logo--rail::before{
+ inset:8% 13%;background:#ffc27f;
+ clip-path:polygon(0 9%,80% 0,100% 30%,38% 44%,92% 62%,100% 83%,26% 100%,17% 83%,77% 74%,4% 48%,1% 28%,77% 15%)
+}
+.game-logo--rail .game-logo-mark{
+ z-index:1;width:29%;height:29%;left:34%;top:43%;border-radius:50%;
+ background:radial-gradient(circle at 33% 27%,#efffff,#82f7df 46%,#338b9b 78%);
+ box-shadow:0 1px 5px #211e44
+}
+
+.game-logo--jelly{background:linear-gradient(145deg,#805395,#342748)}
+.game-logo--jelly::before{
+ inset:20% 19% 23%;background:#b4ee92;border:2px solid #5d936c;border-radius:47% 50% 35% 37%
+}
+.game-logo--jelly::after{
+ inset:34% 30% 41%;z-index:1;
+ background:radial-gradient(ellipse at 29% 49%,#34304b 0 11%,transparent 14%),
+ radial-gradient(ellipse at 80% 49%,#34304b 0 11%,transparent 14%),
+ radial-gradient(ellipse at 25% 52%,#fff7e9 0 22%,transparent 26%),
+ radial-gradient(ellipse at 74% 52%,#fff7e9 0 22%,transparent 26%)
+}
+.game-logo--jelly .game-logo-mark{
+ width:16%;height:7%;left:43%;top:58%;z-index:1;border-bottom:2px solid #4b6754;border-radius:50%
+}

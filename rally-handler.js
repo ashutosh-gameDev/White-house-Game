@@ -4,6 +4,7 @@ import {DAY,eventFor,makeCourse,regionalEvent,regions,configuredStage} from './p
 import {normalizeCountry} from './public/countries.js';
 import {ready,verify} from './public/race.js';
 import {MAX_TICKS,flightDay,flightSeed,verifyFlight} from './public/space-glider/flight.js';
+import {MAX_INPUT_SIZE,climbSeed,verifyClimb} from './public/jelly-hop/climb.js';
 
 await ready;
 const previewOffset=Number(process.env.RALLY_PREVIEW_OFFSET??0);
@@ -21,6 +22,12 @@ const assets=new Map(['/index.html','/style.css','/game.js','/course.js','/vehic
  .map(path=>[path,'public'+path]));
 assets.set('/','public/index.html');
 assets.set('/space-glider','public/space-glider/index.html');
+assets.set('/spiral-rail','public/spiral-rail/index.html');
+assets.set('/jelly-hop','public/jelly-hop/index.html');
+assets.set('/jelly-hop/','public/jelly-hop/index.html');
+for(const file of ['index.html','game.css','game.js','climb.js'])assets.set('/jelly-hop/'+file,'public/jelly-hop/'+file);
+assets.set('/spiral-rail/','public/spiral-rail/index.html');
+for(const file of ['index.html','game.css','game.js'])assets.set('/spiral-rail/'+file,'public/spiral-rail/'+file);
 assets.set('/space-glider/','public/space-glider/index.html');
 for(const file of ['index.html','game.css','game.js','flight.js'])assets.set('/space-glider/'+file,'public/space-glider/'+file);
 assets.set('/vendor/three.module.js','node_modules/three/build/three.module.js');
@@ -66,41 +73,41 @@ function json(res,status,payload){
  res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});
  res.end(JSON.stringify(payload));
 }
-let cachedGlider=null,localGlider={day:null,runs:[]};
-const publicGlider=(day,runs,id)=>{
+const savedFlights={glider:{seed:flightSeed,verify:verifyFlight,limit:MAX_TICKS},jelly:{seed:climbSeed,verify:verifyClimb,limit:MAX_INPUT_SIZE}};
+const publicFlight=(day,runs,id,seed)=>{
  const index=runs.findIndex(run=>run.id===id);
  return {
-  day,seed:flightSeed(day),rank:index<0?null:index+1,
+  day,seed,rank:index<0?null:index+1,
   scores:runs.map(({name,distance,country})=>({name,distance,country})),
   ghost:runs.length?{name:runs[0].name,inputs:runs[0].inputs}:null
  };
 };
-async function handleGlider(req,res,url){
- const day=flightDay();
- if(localGlider.day!==day)localGlider={day,runs:[]};
+async function handleFlight(req,res,url,game){
+ const day=flightDay(),store=savedFlights[game],seed=store.seed(day);
+ if(store.local?.day!==day)store.local={day,runs:[]};
  if(process.env.VERCEL&&!cloud)return json(res,503,{error:'Leaderboard storage is not configured.'});
  if(req.method==='GET'){
-  if(cloud&&(!cachedGlider||cachedGlider.day!==day||cachedGlider.until<Date.now())){
+  if(cloud&&(!store.cached||store.cached.day!==day||store.cached.until<Date.now())){
    const entry={day,until:Date.now()+45_000};
-   entry.result=cloud.gliderBoard(day).catch(error=>{
-    if(cachedGlider===entry)cachedGlider=null;
+   entry.result=cloud.flightBoard(day,game).catch(error=>{
+    if(store.cached===entry)store.cached=null;
     throw error;
    });
-   cachedGlider=entry;
+   store.cached=entry;
   }
-  const rows=cloud?await cachedGlider.result:localGlider.runs;
+  const rows=cloud?await store.cached.result:store.local.runs;
   const driver=url.searchParams.get('driver');
-  if(url.searchParams.get('mode')==='live'){
+  if(game==='glider'&&url.searchParams.get('mode')==='live'){
    const rivals=rows.filter(run=>run.id!==driver).slice(0,6).map(({name,inputs})=>({name,inputs}));
    return json(res,200,{day,rivals});
   }
-  return json(res,200,publicGlider(day,rows,driver));
+  return json(res,200,publicFlight(day,rows,driver,seed));
  }
  if(req.method!=='POST')return json(res,405,{error:'Method not allowed.'});
  let raw='';
  for await(const chunk of req){
   raw+=chunk;
-  if(raw.length>MAX_TICKS+500)return json(res,413,{error:'Flight too large.'});
+  if(raw.length>store.limit+500)return json(res,413,{error:'Flight too large.'});
  }
  let run;
  try{run=JSON.parse(raw);}catch{return json(res,400,{error:'Invalid flight.'});}
@@ -109,21 +116,21 @@ async function handleGlider(req,res,url){
  if(typeof name!=='string'||!name.trim()||name.length>20||typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id)){
   return json(res,400,{error:'Invalid pilot.'});
  }
- const distance=verifyFlight(flightSeed(day),inputs);
+ const distance=store.verify(seed,inputs);
  if(distance===null)return json(res,422,{error:'Flight replay could not be verified.'});
  const record={id,name:name.trim(),inputs,country:normalizeCountry(country),distance};
  let rows;
  if(cloud){
-  rows=await cloud.saveGlider(day,record);
-  cachedGlider=null;
+  rows=await cloud.saveFlight(day,record,game);
+  store.cached=null;
  }else{
-  const current=localGlider.runs;
+  const current=store.local.runs;
   const previous=current.find(row=>row.id===id);
   rows=previous?.distance>=distance?current:
    [...current.filter(row=>row.id!==id),record].sort((a,b)=>b.distance-a.distance).slice(0,20);
-  localGlider.runs=rows;
+  store.local.runs=rows;
  }
- return json(res,200,{...publicGlider(day,rows,id),distance});
+ return json(res,200,{...publicFlight(day,rows,id,seed),distance});
 }
 export async function handleRequest(req,res,endpoint){
  try{
@@ -135,7 +142,7 @@ export async function handleRequest(req,res,endpoint){
     'Cache-Control':vendor?'public, max-age=86400':'no-cache'});
    return res.end(data);
   }
-  if(path==='/api/glider')return await handleGlider(req,res,url);
+  if(path==='/api/glider'||path==='/api/jelly')return await handleFlight(req,res,url,path.slice(5));
   if(process.env.VERCEL&&!cloud)return json(res,503,{error:'Leaderboard storage is not configured.'});
   const requested=url.searchParams.get('region');
   const region=Object.hasOwn(regions,requested)?requested:'plains';
