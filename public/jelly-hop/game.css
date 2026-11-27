@@ -32,3 +32,32 @@ h1{margin:0;font-size:clamp(27px,6vw,42px);line-height:1;letter-spacing:-.045em}
 #scores li{padding:6px}
 #scores li.current{color:#cfffab;background:#462f59;border-radius:5px}
 #scores strong{float:right}
+
+/* Pathru uses a monochrome game view and interface. */
+:root{background:#171717;color:#fafafa}
+#game{filter:grayscale(1)}
+header{display:flex;justify-content:space-between}
+header a,button{border-color:#898989;background:#222;color:#fafafa}
+#stats{
+ position:fixed;top:max(54px,calc(env(safe-area-inset-top) + 46px));right:12px;
+ left:auto;transform:none;background:#181818eb;border-color:#777;padding:6px 8px;font-size:11px;pointer-events:none
+}
+#notice{top:max(92px,calc(env(safe-area-inset-top) + 80px));color:#f1f1f1;pointer-events:none}
+#panel{border-color:#929292;border-top-color:#ededed;background:#202020f5;box-shadow:0 12px 36px #0009}
+.panel-top{
+ position:sticky;top:-15px;z-index:1;background:#202020;
+ display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0 5px
+}
+#panel p,#panel small{color:#e1e1e1}
+#play{margin:0;background:#eee;color:#161616;border-color:#fff}
+.setup input,.setup select{color:#fafafa;background:#303030;border-color:#8e8e8e}
+#leaderboard{background:#202020f7;border-color:#828282}
+#scores li.current{background:#444;color:#fff}
+button:focus-visible,a:focus-visible{outline-color:#fff}
+@media(pointer:coarse),(max-width:760px){
+ #panel{top:max(78px,calc(env(safe-area-inset-top) + 66px));bottom:auto;max-height:min(55dvh,360px);padding-top:10px}
+ .panel-top{top:-10px}
+}
+
+.header-tools{display:flex;gap:5px}
+#sound{white-space:nowrap}

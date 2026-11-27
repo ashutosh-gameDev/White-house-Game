@@ -11,7 +11,7 @@ export async function firebaseScores() {
  const maps=db.collection('gameSchedules').doc('daily-rally').collection('stages');
  const schedules=new Map();
  const snapshots=new Map();
- const flights=(day,game)=>db.collection(game==='jelly'?'jellyHopClimbV3':'spaceGliderDailyV3').doc(String(day));
+ const flights=(day,game)=>db.collection(game==='jelly'?'jellyHopClimbV4':'spaceGliderDailyV3').doc(String(day));
  const snapshotTtl=45_000;
  return {
   async flightBoard(day,game){

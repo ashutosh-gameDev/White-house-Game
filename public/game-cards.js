@@ -1,8 +1,8 @@
-const games=[
- {id:'rally',title:'Daily Rally',href:'/'},
- {id:'glider',title:'Space Glider',href:'/space-glider'},
+export const games=[
+ {id:'rally',title:'Daily Rally',href:'/',board:'/api/event'},
+ {id:'glider',title:'Space Glider',href:'/space-glider',board:'/api/glider'},
  {id:'rail',title:'Spiral Rail',href:'/spiral-rail'},
- {id:'jelly',title:'Jelly Hop',href:'/jelly-hop'}
+ {id:'jelly',title:'Pathru',href:'/pathru',board:'/api/jelly'}
 ];
 
 if(location.pathname!=='/practice'){

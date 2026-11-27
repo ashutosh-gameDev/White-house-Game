@@ -1,16 +1,19 @@
+import {makeAudio} from '/audio.js';
 import {STEP,TILE,WORLD_WIDTH,MAX_TICKS,MAX_INPUT_SIZE,climbSeed,platformDepth,platformsFor,createClimb,launchVector,stepClimb} from './climb.js';
 
 const el=id=>document.getElementById(id);
 const canvas=el('game'),ctx=canvas.getContext('2d');
 const play=el('play'),panel=el('panel'),notice=el('notice'),save=el('save'),pilot=el('pilot');
 const board=el('leaderboard'),boardButton=el('board');
+const music=makeAudio(el('sound'));
+play.addEventListener('click',()=>music.start());
 const day=Math.floor(Date.now()/86400000);
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const ease=(value,target,rate,dt)=>value+(target-value)*(1-Math.exp(-rate*dt));
 let daily={day,seed:climbSeed(day),scores:[],ghost:null};
 let run=createClimb(daily.seed),ghost=null,moves=[],ghostMoves=[],ghostIndex=0,ghostLimit=0;
 let playing=false,aim=null,queued=null,keys=0,clock=0,frameAt=0,accumulator=0;
-let width=0,height=0,ratio=1,scale=1,offsetX=0,cameraY=-480,squash=0,noticeUntil=0;
+let width=0,height=0,ratio=1,scale=1,offsetX=0,cameraX=0,cameraY=-480,squash=0,noticeUntil=0;
 let driverId,record=null,saving=false,lastSaveAt=0,knownHeight=0;
 try{
  driverId=localStorage.getItem('rapier-driver')??crypto.randomUUID();
@@ -59,7 +62,7 @@ async function load(){
 }
 function start(){
  run=createClimb(daily.seed);moves=[];queued=aim=null;keys=0;accumulator=0;squash=0;record=null;
- cameraY=-height/scale*.72;
+ cameraX=0;cameraY=-height/scale*.72;
  ghost=null;ghostIndex=0;
  if(el('mode').value==='ghost'){
   try{
@@ -198,13 +201,16 @@ function drawJelly(state,isGhost=false){
  ctx.fillStyle=isGhost?'#a1e5f7':'#bdc9cc';
  ctx.beginPath();ctx.moveTo(-12,-14);ctx.lineTo(10,-14);ctx.lineTo(12,-9);ctx.lineTo(-11,-8);ctx.closePath();ctx.fill();
  for(const side of [-1,1]){
-  const x=side*6+Math.sin(clock*13+side)*1.45,y=-2+Math.sin(clock*16+side)*1.2;
+  const x=side*6,y=-2;
+  const pupilX=x+Math.sign(state.vx)*.8+Math.sin(clock*13+side)*1.15;
+  const pupilY=y+.4+Math.sin(clock*16+side)*1.05;
   ctx.fillStyle='#fff8ec';ctx.beginPath();ctx.ellipse(x,y,4.5,5.4,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#352641';ctx.beginPath();ctx.arc(x+Math.sign(state.vx)*1.4,y+.4,2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#111';ctx.beginPath();ctx.arc(pupilX,pupilY,2,0,Math.PI*2);ctx.fill();
  }
  ctx.restore();
 }
 function frame(now){
+ music.update(null,'preview',0);
  const dt=Math.min(.05,(now-(frameAt||now))/1000);frameAt=now;clock+=dt;
  if(playing){
   accumulator+=dt;
@@ -212,13 +218,14 @@ function frame(now){
  }
  if(notice.textContent&&clock>noticeUntil)notice.textContent='';
  squash=ease(squash,0,9,dt);
+ cameraX=ease(cameraX,run.x-clamp(run.x,25,WORLD_WIDTH-25),6,dt);
  cameraY=ease(cameraY,run.y-height/scale*.68,7,dt);
  el('stats').textContent='Height '+Math.max(0,Math.floor((-run.y-17)/10))+' m · Best '+Math.max(run.height,knownHeight)+' m';
  ctx.setTransform(ratio,0,0,ratio,0,0);
  const gradient=ctx.createLinearGradient(0,0,0,height);
  gradient.addColorStop(0,'#221937');gradient.addColorStop(1,'#664977');
  ctx.fillStyle=gradient;ctx.fillRect(0,0,width,height);
- ctx.save();ctx.translate(offsetX,-cameraY*scale);ctx.scale(scale,scale);
+ ctx.save();ctx.translate(offsetX-cameraX*scale,-cameraY*scale);ctx.scale(scale,scale);
  const first=Math.max(0,Math.floor(-(cameraY+height/scale)/TILE));
  const last=Math.max(first,Math.ceil(-cameraY/TILE)+1);
  for(let row=first;row<=last;row++){

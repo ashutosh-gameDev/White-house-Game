@@ -11,7 +11,7 @@
 </head>
 <body>
 <canvas id="city" aria-label="Space Glider flight view"></canvas>
-<header><a href="/">← Daily Rally</a><button id="sound" type="button" aria-pressed="true">Sound on</button></header>
+<header><a href="/games?game=glider">More Games</a><button id="sound" type="button" aria-pressed="true">Sound on</button></header>
 <aside id="flight" aria-label="Flight stats">
  <div><small>Distance</small><strong id="distance">0 m</strong></div>
  <div><small>Speed</small><strong id="speed">0 km/h</strong></div>
@@ -19,7 +19,8 @@
 </aside>
 <p id="modeStatus" role="status"></p>
 <main id="panel">
- <h1 id="heading">Space Glider</h1>
+ <div class="flight-panel-top"><h1 id="heading">Space Glider</h1><button id="play" disabled>Launch</button></div>
+ <div class="flight-panel-body">
  <p id="message">Find your own route through the shapes. Collect shields and slow-time power-ups as you fly.</p>
  <p id="best"></p>
  <div class="loadout">
@@ -29,11 +30,11 @@
   <label for="paint">Paint color<input id="paint" type="color" value="#e1e9f4"></label>
   <label for="country">Flag<select id="country"></select></label>
  </div>
- <button id="play" disabled>Launch</button>
  <button id="showScores" type="button" aria-controls="scoresPanel" aria-expanded="false">Leaderboard</button>
  <p id="scoreStatus" role="status"></p>
  <nav class="game-shelf" data-other-games="glider" aria-label="Other games" hidden></nav>
  <small>Hold ← / → or the on-screen buttons to steer.</small>
+ </div>
 </main>
 <aside id="scoresPanel" hidden aria-labelledby="scoresTitle">
  <div><h2 id="scoresTitle">Daily leaderboard</h2><button id="closeScores" aria-label="Close leaderboard">×</button></div>

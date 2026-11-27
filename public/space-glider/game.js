@@ -172,7 +172,7 @@ shield.visible=false;
 const profiles={
  arrow:{hull:hullGeometry,color:0xe1e9f4,exhaust:0x16faff,width:1,length:1,sticker:[0,.113,-.35,.04]},
  mantis:{hull:mantisHull,color:0x91ddaa,exhaust:0x54ff22,width:1.14,length:.86,sticker:[0,.223,-.35,.08]},
- wraith:{hull:wraithHull,color:0xb9a9eb,exhaust:0xff26d3,width:.84,length:1.18,sticker:[0,.174,-.35,.05]},
+ wraith:{hull:wraithHull,color:0xb9a9eb,exhaust:0x508cff,width:.84,length:1.18,sticker:[0,.174,-.35,.05]},
  split:{hull:splitHull,color:0xe1e6ef,exhaust:0xffa12d,width:1,length:1,sticker:[-1.06,.347,.56,.0624,.66,-.0374]}
 };
 const flagMaterial=new THREE.MeshBasicMaterial({side:THREE.DoubleSide,transparent:true,alphaTest:.25,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});

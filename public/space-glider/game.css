@@ -45,3 +45,26 @@ button:focus-visible,a:focus-visible{outline:3px solid #ff99da;outline-offset:3p
 
 #modeStatus{position:fixed;top:112px;left:50%;transform:translateX(-50%);width:max-content;max-width:90%;padding:5px 9px;border-radius:7px;background:#142239;color:#e3f6ff;text-align:center;font-size:12px}
 #modeStatus:empty{display:none}
+
+/* Keep the flight telemetry in a corner and the launch action above the scroll. */
+body:has(#city[aria-label="Space Glider flight view"]) #flight{
+ left:auto;right:max(9px,env(safe-area-inset-right));transform:none;
+ top:max(51px,calc(env(safe-area-inset-top) + 44px));gap:8px;padding:5px 7px;
+ pointer-events:none
+}
+body:has(#city[aria-label="Space Glider flight view"]) #flight small{font-size:9px}
+body:has(#city[aria-label="Space Glider flight view"]) #flight strong{font-size:12px}
+#panel:has(.flight-panel-top){
+ display:flex;flex-direction:column;padding:0;overflow:hidden
+}
+.flight-panel-top{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ padding:11px 14px 8px;background:#131d34;flex:none
+}
+.flight-panel-top h1{margin:0;font-size:clamp(24px,5.6vw,37px)}
+.flight-panel-top #play{margin:0;min-height:40px;white-space:nowrap}
+.flight-panel-body{min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 14px 13px}
+#modeStatus{top:max(96px,calc(env(safe-area-inset-top) + 88px));pointer-events:none}
+@media(pointer:coarse),(max-width:760px){
+ #panel:has(.flight-panel-top){top:max(92px,calc(env(safe-area-inset-top) + 86px));bottom:auto;max-height:min(55dvh,365px)}
+}

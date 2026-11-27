@@ -1,7 +1,10 @@
+import {makeAudio} from '/audio.js';
 import * as THREE from 'three';
 
 const el=id=>document.getElementById(id);
 const canvas=el('city'),panel=el('panel'),play=el('play');
+const music=makeAudio(el('sound'));
+play.addEventListener('click',()=>music.start());
 let renderer;
 try{renderer=new THREE.WebGLRenderer({canvas,antialias:true});}
 catch{
@@ -217,6 +220,7 @@ function advance(dt){
  hud();
 }
 function frame(now){
+ music.update(null,'preview',0);
  const dt=Math.min(.04,(now-(last||now))/1000);last=now;
  if(mode==='rolling')advance(dt);
  ball.position.copy(route(distance,lane*laneWidth,.48,point));

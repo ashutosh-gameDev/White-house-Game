@@ -62,7 +62,7 @@ export function stepClimb(run,launch){
    const nextX=run.x+run.vx*STEP;
    if(nextX>=standing.x&&nextX<=standing.x+standing.w){
     run.x=nextX;
-    run.vx*=Math.exp(-STEP*5.4);
+    run.vx*=Math.exp(-STEP*8.4);
     return;
    }
    run.y=standing.y-RADIUS+.001;
@@ -80,10 +80,6 @@ export function stepClimb(run,launch){
   }else if(run.vx<0&&previousX-HALF_WIDTH>=p.x+p.w&&run.x-HALF_WIDTH<p.x+p.w){
    run.x=p.x+p.w+HALF_WIDTH;run.vx*=-.42;
   }
- }
- if(run.x<HALF_WIDTH||run.x>WORLD_WIDTH-HALF_WIDTH){
-  run.x=clamp(run.x,HALF_WIDTH,WORLD_WIDTH-HALF_WIDTH);
-  run.vx*=-.42;
  }
  run.y+=run.vy*STEP;
  let contact,hitLine;
@@ -107,9 +103,13 @@ export function stepClimb(run,launch){
   if(contact.type==='spring'){run.vy=-750;run.vx*=.73;}
   else if(contact.type==='spikes'){run.y=hitLine+platformDepth(contact)+RADIUS+.01;run.vy=65;run.vx*=.6;}
   else{
-   run.standing=contact.id;run.vx*=.78;run.vy=0;
+   run.standing=contact.id;run.vx*=.54;run.vy=0;
    if(contact.type==='crumble')run.broken.set(contact.id,run.ticks+54);
   }
+ }
+ if(run.y>145){
+  run.x=WORLD_WIDTH*.5;run.y=-RADIUS;run.vx=run.vy=0;
+  run.standing='floor';run.landed=true;
  }
  run.height=Math.max(run.height,Math.floor((-run.y-RADIUS)/10));
 }

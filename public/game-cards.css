@@ -88,3 +88,5 @@
 .game-logo--jelly .game-logo-mark{
  width:16%;height:7%;left:43%;top:58%;z-index:1;border-bottom:2px solid #4b6754;border-radius:50%
 }
+
+.game-logo--jelly{filter:grayscale(1)}

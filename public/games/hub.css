@@ -1,0 +1,22 @@
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#101725;color:#f5f4ff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0,#283d59,#101725 67%);min-height:100vh}
+main{max-width:850px;margin:auto;padding:clamp(14px,4vw,35px)}
+header{display:grid;place-items:center;min-height:130px;padding:8px 0 16px}
+header img{width:min(100%,340px);height:auto;object-fit:contain}
+h1,h2{margin:0}
+h1{font-size:clamp(26px,6vw,40px)}
+.game-shelf{grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:10px;margin-bottom:20px}
+.game-shelf .game-card{min-height:80px}
+.game-shelf .game-logo{width:64px;height:64px}
+.leaderboard{border:1px solid #677c9c;border-radius:14px;padding:12px 15px;background:#19263bdc}
+.board-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.board-heading h2{font-size:20px}
+label{font-size:13px;color:#d8e5ff}
+select{font:inherit;border-radius:7px;padding:6px;color:inherit;background:#24374e;border:1px solid #8297ba}
+#boardStatus{margin:10px 0;color:#c3d4ed;font-size:14px}
+#boardStatus:empty,#boardRows:empty{display:none}
+ol{margin:10px 0 0;padding-left:29px}
+li{padding:7px 4px;border-top:1px solid #354a66}
+li strong{float:right;font-variant-numeric:tabular-nums;margin-left:7px}
+li canvas{width:23px;height:15px;vertical-align:-2px;margin-right:7px}

@@ -4,22 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1f1835">
-<title>Jelly Hop | White House Games</title>
+<title>Pathru | White House Games</title>
 <link rel="stylesheet" href="/game-cards.css">
 <link rel="stylesheet" href="/jelly-hop/game.css">
 </head>
 <body>
-<canvas id="game" aria-label="Jelly Hop endless climb"></canvas>
-<header><a href="/">← Daily Rally</a><div id="stats">Height 0 m · Best 0 m</div><button id="restart" type="button" hidden>Restart</button></header>
+<canvas id="game" aria-label="Pathru endless climb"></canvas>
+<header><a href="/games?game=jelly">More Games</a><div class="header-tools"><button id="sound" type="button" aria-pressed="false">Sound off</button><button id="restart" type="button" hidden>Restart</button></div></header>
+<div id="stats">Height 0 m · Best 0 m</div>
 <div id="notice" role="status" aria-live="polite"></div>
 <main id="panel">
- <h1>Jelly Hop</h1>
+ <div class="panel-top"><h1>Pathru</h1><button id="play" type="button" disabled>Play</button></div>
  <p>Hop around solid ledges and see how high your little rock can climb.</p>
  <div class="setup">
   <label>Pilot name <input id="pilot" maxlength="20" value="Jelly"></label>
   <label>Play mode <select id="mode"><option value="solo">Solo</option><option value="ghost">Ghost</option></select></label>
  </div>
- <button id="play" type="button" disabled>Climb</button>
  <button id="board" type="button" aria-expanded="false" aria-controls="leaderboard">Leaderboard</button>
  <p><small>Pull back and release to hop in the opposite direction. On a keyboard, aim with ← / → and press Space.</small></p>
  <nav class="game-shelf" data-other-games="jelly" aria-label="Other games" hidden></nav>

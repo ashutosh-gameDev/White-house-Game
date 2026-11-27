@@ -17,13 +17,18 @@ if(!cloud&&!process.env.VERCEL){
  try{scores=JSON.parse(await readFile(db,'utf8'));}
  catch(error){if(error.code!=='ENOENT')throw error;}
 }
-const mime={js:'text/javascript',html:'text/html',css:'text/css',ttf:'font/ttf'};
-const assets=new Map(['/index.html','/style.css','/game.js','/course.js','/vehicle.js','/race.js','/audio.js','/countries.js','/rally-dust.ttf','/game-cards.js','/game-cards.css']
+const mime={js:'text/javascript',html:'text/html',css:'text/css',ttf:'font/ttf',png:'image/png'};
+const assets=new Map(['/index.html','/style.css','/game.js','/course.js','/vehicle.js','/race.js','/audio.js','/countries.js','/rally-dust.ttf','/game-cards.js','/game-cards.css','/logo-mark-wide.png']
  .map(path=>[path,'public'+path]));
 assets.set('/','public/index.html');
 assets.set('/space-glider','public/space-glider/index.html');
 assets.set('/spiral-rail','public/spiral-rail/index.html');
 assets.set('/jelly-hop','public/jelly-hop/index.html');
+assets.set('/pathru','public/jelly-hop/index.html');
+assets.set('/pathru/','public/jelly-hop/index.html');
+assets.set('/games','public/games/index.html');
+assets.set('/games/','public/games/index.html');
+for(const file of ['index.html','hub.css','hub.js'])assets.set('/games/'+file,'public/games/'+file);
 assets.set('/jelly-hop/','public/jelly-hop/index.html');
 for(const file of ['index.html','game.css','game.js','climb.js'])assets.set('/jelly-hop/'+file,'public/jelly-hop/'+file);
 assets.set('/spiral-rail/','public/spiral-rail/index.html');

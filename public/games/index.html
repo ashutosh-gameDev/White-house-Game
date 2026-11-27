@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>White House Games</title>
+<link rel="stylesheet" href="/game-cards.css">
+<link rel="stylesheet" href="/games/hub.css">
+</head>
+<body>
+<main>
+ <header><img src="/logo-mark-wide.png" width="1054" height="415" alt="White House Games"></header>
+ <section aria-labelledby="gamesTitle">
+  <h1 id="gamesTitle">Games</h1>
+  <nav class="game-shelf" data-other-games="" aria-label="All games" hidden></nav>
+ </section>
+ <section class="leaderboard" aria-labelledby="boardTitle">
+  <div class="board-heading"><h2 id="boardTitle">Leaderboards</h2><label>Game <select id="boardGame"></select></label></div>
+  <p id="boardStatus" role="status"></p>
+  <ol id="boardRows"></ol>
+ </section>
+</main>
+<script type="module" src="/games/hub.js"></script>
+</body>
+</html>
