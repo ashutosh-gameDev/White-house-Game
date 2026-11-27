@@ -183,3 +183,14 @@ body:has(#pauseRace:not([hidden])) #hud{
  font-size:13px;font-weight:750;text-decoration:none
 }
 .gameLinks a:hover,.gameLinks a:focus-visible{background:#ffe3f1}
+header #moreGamesTop{
+ display:inline-flex;align-items:center;justify-content:center;min-height:42px;
+ padding:6px 10px;border:1px solid #ffe3a8;border-bottom:3px solid #9d6924;
+ border-radius:10px;background:#f8c96b;color:#1e291d;
+ font:800 clamp(11px,2.4vw,15px) system-ui,sans-serif;
+ white-space:nowrap;text-shadow:none;
+}
+header #moreGamesTop:hover{background:#ffdf94}
+header #moreGamesTop:focus-visible{outline:2px solid #ffd578;outline-offset:2px}
+@media(max-width:470px){header #moreGamesTop{min-height:39px;padding-inline:6px}}
+@media(max-height:500px) and (orientation:landscape){header #moreGamesTop{min-height:33px}}
