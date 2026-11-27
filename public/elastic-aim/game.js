@@ -1,5 +1,7 @@
 import {WIDTH,HEIGHT,PICKUP_RADIUS,STEP,MAX_VERIFY_TICKS,utcDay,dailyTable,shoot,stepTable} from './physics.js';
 import {makeAudio} from '/audio.js';
+import {bindPlayerName,savePlayerName} from '/player-name.js';
+
 
 const el=id=>document.getElementById(id);
 const canvas=el('table'),ctx=canvas.getContext('2d');
@@ -11,9 +13,8 @@ let driver=crypto.randomUUID();
 try{
  driver=localStorage.getItem('touch-red-driver')||driver;
  localStorage.setItem('touch-red-driver',driver);
- player.value=localStorage.getItem('touch-red-name')||'Player';
-}catch{player.value='Player';}
-player.onchange=()=>{try{localStorage.setItem('touch-red-name',player.value.trim());}catch{}};
+}catch{}
+bindPlayerName(player);
 
 let table,mode,pointer,angle,speed,ticks,accumulator;
 let previous=0,view,revision=0,boardRequest=0;
@@ -150,7 +151,7 @@ async function endShot(){
  const request=++boardRequest;
  el('finish-status').textContent='Saving score…';
  try{
-  const data=await requestBoard({day,id:driver,name:player.value.trim()||'Player',angle,speed,ticks});
+  const data=await requestBoard({day,id:driver,name:savePlayerName(player.value)||'Player',angle,speed,ticks});
   if(request===boardRequest)drawBoard(data);
   if(current===revision)el('finish-status').textContent='Score verified.';
  }catch(error){

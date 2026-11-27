@@ -588,11 +588,13 @@ function frame(now){
  requestAnimationFrame(frame);
 }
 const pilot=el('pilot'),scoresPanel=el('scoresPanel'),showScores=el('showScores'),status=el('scoreStatus');
+bindPlayerName(pilot,'Pilot');
+import {bindPlayerName,savePlayerName} from '/player-name.js';
 let driverId;
 try{
  driverId=localStorage.getItem('rapier-driver')??crypto.randomUUID();
  localStorage.setItem('rapier-driver',driverId);
- pilot.value=localStorage.getItem('glider-pilot')??localStorage.getItem('rapier-name')??'Pilot';
+
 }catch{}
 function hideScores(){
  scoresPanel.hidden=true;
@@ -628,8 +630,8 @@ let submitted=0;
 async function submitFlight(){
  if(!driverId||!inputLog.length||inputLog.length>MAX_TICKS)return;
  const sequence=++submitted;
- const name=pilot.value.trim()||'Pilot';
- try{localStorage.setItem('glider-pilot',name);}catch{}
+ const name=savePlayerName(pilot.value)||'Pilot';
+
  status.textContent='Verifying flight…';
  try{
   const response=await fetch('/api/glider',{method:'POST',headers:{'Content-Type':'application/json'},

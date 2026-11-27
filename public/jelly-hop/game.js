@@ -4,6 +4,7 @@ import {STEP,TILE,WORLD_WIDTH,MAX_TICKS,MAX_INPUT_SIZE,climbSeed,platformDepth,p
 const el=id=>document.getElementById(id);
 const canvas=el('game'),ctx=canvas.getContext('2d');
 const play=el('play'),panel=el('panel'),notice=el('notice'),save=el('save'),pilot=el('pilot');
+bindPlayerName(pilot,'Jelly');
 const board=el('leaderboard'),boardButton=el('board');
 const music=makeAudio(el('sound'));
 play.addEventListener('click',()=>music.start());
@@ -14,11 +15,12 @@ let daily={day,seed:climbSeed(day),scores:[],ghost:null};
 let run=createClimb(daily.seed),ghost=null,moves=[],ghostMoves=[],ghostIndex=0,ghostLimit=0;
 let playing=false,aim=null,queued=null,keys=0,clock=0,frameAt=0,accumulator=0;
 let width=0,height=0,ratio=1,scale=1,offsetX=0,cameraX=0,cameraY=-480,squash=0,noticeUntil=0;
+import {bindPlayerName,savePlayerName} from '/player-name.js';
 let driverId,record=null,saving=false,lastSaveAt=0,knownHeight=0;
 try{
  driverId=localStorage.getItem('rapier-driver')??crypto.randomUUID();
  localStorage.setItem('rapier-driver',driverId);
- pilot.value=localStorage.getItem('jelly-pilot')??localStorage.getItem('rapier-name')??'Jelly';
+
 }catch{}
 function resize(){
  width=canvas.clientWidth;height=canvas.clientHeight;
@@ -151,8 +153,8 @@ async function saveHeight(manual){
   return;
  }
  saving=true;lastSaveAt=clock;
- const name=pilot.value.trim()||'Jelly';
- try{localStorage.setItem('jelly-pilot',name);}catch{}
+ const name=savePlayerName(pilot.value)||'Jelly';
+
  try{
   const response=await fetch('/api/jelly',{method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({day:daily.day,id:driverId,name,inputs})});

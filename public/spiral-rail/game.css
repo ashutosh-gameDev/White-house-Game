@@ -23,3 +23,17 @@
 #switchSide{border-color:#ffbf6c;color:#ffdfae;background:#291609ed}
 
 #sound{padding:7px 10px;background:#17140e;color:#fff0d2;border-color:#805426}
+
+#railBoard{margin:12px 0;text-align:left}
+#railBoard h2{font-size:15px}
+#railScores{margin:6px 0;padding-left:24px;font-variant-numeric:tabular-nums}
+#railScores li{padding:2px 0}
+#railScores .current{color:#ffd07a;font-weight:800}
+
+#railBoard{margin:auto;width:min(360px,calc(100% - 24px));max-height:85dvh;padding:20px;color:#fff3de;background:#171824;border:1px solid #ffa45f;border-radius:14px}
+#railBoard::backdrop{background:#05060bbd}
+#railBoard h2{font-size:22px;margin:0}
+#railBoard form{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+#railRunScore{color:#ffd07a;font-weight:750}
+#openRailBoard{margin-left:auto}
+body:has(#panel[hidden]) #openRailBoard{display:none}

@@ -1,6 +1,9 @@
 import {games} from '/game-cards.js';
 import {countries,drawFlag,normalizeCountry} from '/countries.js';
 
+import {bindPlayerName} from '/player-name.js';
+bindPlayerName(document.querySelector('#playerName'));
+
 const picker=document.querySelector('#boardGame');
 const list=document.querySelector('#boardRows');
 const status=document.querySelector('#boardStatus');

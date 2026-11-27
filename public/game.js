@@ -1,3 +1,4 @@
+import {bindPlayerName,getPlayerName,savePlayerName} from '/player-name.js';
 import * as THREE from 'three';
 import {DAY,DT,inputCodes,FINISH_GATE,makeCourse,mulberry32,palettes,regions} from './course.js';
 import {ready,clock,makeCar,step} from './race.js';
@@ -895,7 +896,7 @@ async function boot(){
  let pausedFrom='racing';
  let rampNoticeUntil=0;
  let mode='preview',last=performance.now(),orbit=0,countdown=0,accumulator=0,serial=0,inputs=[];
- el('name').value=localStorage.getItem('rapier-name')||'Rookie';
+ bindPlayerName(el('name'),'Rookie');
  el('date').textContent=(data.practice?'PRACTICE · ':data.preview?'TEST STAGE · ':'')+new Date(data.event.day*DAY).toISOString().slice(0,10)+' UTC';
  el('title').textContent=data.event.name;
  el('description').textContent=(course.event.length/1000).toFixed(2)+' km · '+(region?.features??'Point-to-point rally');
@@ -975,7 +976,7 @@ async function boot(){
    showRivalStatus(unavailable?'Rivals unavailable. Starting solo.':rivals.length?'':'No other runs yet. Starting solo.');
   }
   inputs=[];accumulator=0;rampNoticeUntil=0;
-  if(!recording)localStorage.setItem('rapier-name',name);
+  if(!recording)savePlayerName(name);
   runCountry=countryPicker.value;runCar=player.value;
   car?.sim.dispose();car=makeCar(course);prior=car.pose;
   resetGhost();rivalTick=0;rivalAccumulator=0;
@@ -1056,7 +1057,7 @@ async function boot(){
   mode='finished';el('pauseRace').hidden=true;clearControls();el('touch').hidden=true;el('announce').textContent=maxTime?'TIME':'FINISH';
   el('resultHeading').textContent=maxTime?'Time limit reached':'Stage complete';
   el('resultCourse').textContent=course.event.name;el('resultTime').textContent=pretty(ms);
-  el('resultDriver').textContent=recording?.name??(localStorage.getItem('rapier-name')||'Rookie');
+  el('resultDriver').textContent=recording?.name??getPlayerName('Rookie');
   el('resultDriver').hidden=false;
   if(!replays.some(replay=>replay.repeat))resetGhost();
   if(!maxTime){burst();audio.finish();}
@@ -1070,7 +1071,7 @@ async function boot(){
   },maxTime?450:1450);
   if(recording)window.dispatchEvent(new CustomEvent('rally:replay-finished',{detail:{ms,finished:!maxTime}}));
   if(maxTime||data.practice)return;
-  const name=localStorage.getItem('rapier-name')||'Rookie';
+  const name=getPlayerName('Rookie');
   try{
    const response=await fetch('/api/result'+eventSuffix,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:data.event.day,id:driverId,name,country:runCountry,car:runCar,inputs:encoded})});
    const result=await response.json();

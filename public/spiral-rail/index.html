@@ -11,7 +11,7 @@
 </head>
 <body>
 <canvas id="city" aria-label="Spiral Rail track view"></canvas>
-<header><a href="/">← Daily Rally</a><button id="sound" type="button" aria-pressed="false">Sound off</button></header>
+<header><a href="/games?game=rail">‹ More Games</a><button id="openRailBoard" type="button">Leaderboard</button><button id="sound" type="button" aria-pressed="false">Sound off</button></header>
 <aside id="flight" aria-label="Run stats">
  <div><small>Distance</small><strong id="distance">0 m</strong></div>
  <div><small>Dodged</small><strong id="speed">0</strong></div>
@@ -25,6 +25,14 @@
  <small>Press Space or tap the play area to switch sides.</small>
  <nav class="game-shelf" data-other-games="rail" aria-label="Other games" hidden></nav>
 </main>
+<dialog id="railBoard" aria-labelledby="railBoardTitle">
+ <h2 id="railBoardTitle">Spiral Rail Leaderboard</h2>
+ <label>Player name <input id="railPlayer" maxlength="20" autocomplete="nickname"></label>
+ <p id="railRunScore"></p>
+ <p>Top scores on this device</p>
+ <ol id="railScores"></ol>
+ <form method="dialog"><button>Close</button><button id="railReplay" type="button" hidden>Roll again</button></form>
+</dialog>
 <button id="switchSide" type="button" hidden>Switch side</button>
 <script type="module" src="/game-cards.js"></script>
 <script type="module" src="/spiral-rail/game.js"></script>

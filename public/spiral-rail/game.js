@@ -1,3 +1,4 @@
+import {bindPlayerName} from '/player-name.js';
 import {makeAudio} from '/audio.js';
 import * as THREE from 'three';
 
@@ -152,7 +153,37 @@ addEventListener('keydown',event=>{
  event.preventDefault();
  switchLane();
 });
-try{best=Math.max(0,Number(localStorage.getItem('spiral-rail-best'))||0);}catch{}
+let highScores=[];
+try{
+ best=Math.max(0,Number(localStorage.getItem('spiral-rail-best'))||0);
+ const stored=JSON.parse(localStorage.getItem('spiral-rail-top-scores')??'[]');
+ if(Array.isArray(stored))highScores=stored.filter(score=>Number.isSafeInteger(score)&&score>=0);
+}catch{}
+ if(best>0&&!highScores.includes(best))highScores.push(best);
+ highScores.sort((a,b)=>b-a);
+ highScores=highScores.slice(0,5);
+const railBoard=el('railBoard');
+bindPlayerName(el('railPlayer'));
+function showBoard(score){
+ const rows=highScores.map(distance=>({distance}));
+ if(score!==undefined){
+  rows.push({distance:score,current:true});
+  rows.sort((a,b)=>b.distance-a.distance).splice(5);
+  highScores=rows.map(row=>row.distance);
+  try{localStorage.setItem('spiral-rail-top-scores',JSON.stringify(highScores));}catch{}
+ }
+ el('railRunScore').textContent=score===undefined?(rows.length?'':'No scores yet.'):'Your run: '+score+' m';
+ el('railScores').replaceChildren(...rows.map(({distance,current})=>{
+  const row=document.createElement('li');
+  row.textContent=distance+' m'+(current?' · This run':'');
+  if(current)row.classList.add('current');
+  return row;
+ }));
+ el('railReplay').hidden=score===undefined;
+ if(!railBoard.open)railBoard.showModal();
+}
+el('openRailBoard').onclick=()=>showBoard();
+el('railReplay').onclick=()=>{railBoard.close();play.click();};
 function showBest(){el('best').textContent='High score: '+best+' m';}
 function hud(){
  el('distance').textContent=Math.floor(distance)+' m';
@@ -179,12 +210,12 @@ function end(){
   try{localStorage.setItem('spiral-rail-best',String(best));}catch{}
  }
  el('heading').textContent='Run over';
- el('message').textContent='You dodged '+passed+' obstacles and collected '+collected+' gems.';
+ el('message').textContent=score+' m · You dodged '+passed+' obstacles and collected '+collected+' gems.';
  showBest();
+ showBoard(score);
  play.textContent='Roll again';
  panel.hidden=false;
  switchButton.hidden=true;
- play.focus();
 }
 play.onclick=()=>{
  reset();
