@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {countries,drawFlag,normalizeCountry} from '/countries.js';
+import {resultShare} from '/result-share.js';
 import {BLOCK_WIDTH,BLOCK_DEPTH,STEP,MAX_TICKS,flightDay,flightSeed,gliderBlock,createFlight,stepFlight} from './flight.js';
 
 const el=id=>document.getElementById(id);
@@ -66,6 +67,7 @@ function soundEffect(kind){
  }
 }
 const canvas=el('city');
+const share=resultShare(el('shareResult'),canvas,'Space Glider','/space-glider');
 let renderer;
 try{
  renderer=new THREE.WebGLRenderer({canvas,antialias:true});
@@ -426,9 +428,25 @@ function reset(){
  updateHud();
 }
 const validReplay=record=>typeof record?.inputs==='string'&&/^[012]+$/.test(record.inputs);
+let personal=null;
+const flightKey=()=> 'space-glider-replay-v1-'+daily.day;
+function loadPersonal(){
+ personal=null;
+ try{
+  const saved=JSON.parse(localStorage.getItem(flightKey()));
+  if(validReplay(saved)&&Number.isFinite(saved.distance))personal=saved;
+ }catch{}
+ updatePersonalOption();
+}
+function updatePersonalOption(){
+ const option=flightMode.querySelector('[value=personal]');
+ option.disabled=!personal;
+ option.textContent=personal?'Personal best · '+personal.distance+' m':'Personal best (complete a flight)';
+}
 async function launch(){
  if(play.disabled)return;
  startAudio();
+ share.clear();
  const selected=flightMode.value;
  let rivals=[],notice='';
  if(selected==='live'){
@@ -450,10 +468,12 @@ async function launch(){
  }else if(selected==='ghost'){
   if(validReplay(daily.ghost))rivals=[daily.ghost];
   else notice='No ghost available yet. Flying solo.';
+ }else if(selected==='personal'&&personal){
+  rivals=[personal];
  }
  release();
  reset();
- opponents=rivals.map((record,index)=>makeOpponent(record,selected==='ghost',index));
+ opponents=rivals.map((record,index)=>makeOpponent(record,selected==='ghost'||selected==='personal',index));
  el('modeStatus').textContent=notice;
  mode='flying';
  hideScores();
@@ -469,6 +489,12 @@ function crash(){
  soundEffect('crash');
  craft.visible=false;
  const result=Math.floor(distance);
+ share.show(result+' m');
+ if(inputLog.length&&inputLog.length<=MAX_TICKS&&(!personal||result>personal.distance)){
+  personal={name:'Personal best',distance:result,inputs:inputLog.join('')};
+  try{localStorage.setItem(flightKey(),JSON.stringify(personal));}catch{}
+  updatePersonalOption();
+ }
  if(result>best){
   best=result;
   try{localStorage.setItem('space-glider-best',String(best));}catch{}
@@ -585,6 +611,7 @@ function frame(now){
   }
  }
  renderer.render(scene,camera);
+ share.captureFrame();
  requestAnimationFrame(frame);
 }
 const pilot=el('pilot'),scoresPanel=el('scoresPanel'),showScores=el('showScores'),status=el('scoreStatus');
@@ -651,6 +678,7 @@ async function bootFlight(){
   if(!response.ok)throw Error('Leaderboard unavailable.');
   daily=await response.json();
  }catch{status.textContent='Leaderboard unavailable. You can still fly.';}
+ loadPersonal();
  reset();
  play.disabled=false;
 }

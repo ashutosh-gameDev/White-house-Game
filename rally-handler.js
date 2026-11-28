@@ -21,7 +21,7 @@ if(!cloud&&!process.env.VERCEL){
  catch(error){if(error.code!=='ENOENT')throw error;}
 }
 const mime={js:'text/javascript',html:'text/html',css:'text/css',ttf:'font/ttf',png:'image/png'};
-const assets=new Map(['/index.html','/style.css','/game.js','/course.js','/vehicle.js','/race.js','/audio.js','/player-name.js','/countries.js','/rally-dust.ttf','/game-cards.js','/game-cards.css','/logo-mark-wide.png']
+const assets=new Map(['/index.html','/style.css','/game.js','/course.js','/vehicle.js','/race.js','/audio.js','/player-name.js','/result-share.js','/countries.js','/rally-dust.ttf','/game-cards.js','/game-cards.css','/logo-mark-wide.png']
  .map(path=>[path,'public'+path]));
 assets.set('/','public/index.html');
 assets.set('/space-glider','public/space-glider/index.html');
@@ -109,7 +109,7 @@ async function handleFlight(req,res,url,game){
   }
   const rows=cloud?await store.cached.result:store.local.runs;
   const driver=url.searchParams.get('driver');
-  if(game==='glider'&&url.searchParams.get('mode')==='live'){
+  if(url.searchParams.get('mode')==='live'){
    const rivals=rows.filter(run=>run.id!==driver).slice(0,6).map(({name,inputs})=>({name,inputs}));
    return json(res,200,{day,rivals});
   }

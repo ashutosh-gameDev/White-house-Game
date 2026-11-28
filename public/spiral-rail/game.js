@@ -1,9 +1,11 @@
 import {bindPlayerName} from '/player-name.js';
+import {resultShare} from '/result-share.js';
 import {makeAudio} from '/audio.js';
 import * as THREE from 'three';
 
 const el=id=>document.getElementById(id);
 const canvas=el('city'),panel=el('panel'),play=el('play');
+const share=resultShare(el('shareResult'),canvas,'Spiral Rail','/spiral-rail');
 const music=makeAudio(el('sound'));
 play.addEventListener('click',()=>music.start());
 let renderer;
@@ -182,7 +184,7 @@ function showBoard(score){
  el('railReplay').hidden=score===undefined;
  if(!railBoard.open)railBoard.showModal();
 }
-el('openRailBoard').onclick=()=>showBoard();
+el('openRailBoard').onclick=()=>{showBoard();share.setVisible(mode==='over');};
 el('railReplay').onclick=()=>{railBoard.close();play.click();};
 function showBest(){el('best').textContent='High score: '+best+' m';}
 function hud(){
@@ -213,11 +215,13 @@ function end(){
  el('message').textContent=score+' m · You dodged '+passed+' obstacles and collected '+collected+' gems.';
  showBest();
  showBoard(score);
+ share.show(score+' m · '+passed+' dodged · '+collected+' gems');
  play.textContent='Roll again';
  panel.hidden=false;
  switchButton.hidden=true;
 }
 play.onclick=()=>{
+ share.clear();
  reset();
  mode='rolling';
  panel.hidden=true;
@@ -262,6 +266,7 @@ function frame(now){
  look.set(desired.x,desired.y-.35,desired.z-11);
  camera.lookAt(look);
  renderer.render(scene,camera);
+ share.captureFrame();
  requestAnimationFrame(frame);
 }
 showBest();

@@ -25,12 +25,12 @@
  <p id="best"></p>
  <div class="loadout">
   <label for="pilot">Pilot name<input id="pilot" maxlength="20" value="Pilot"></label>
-  <label for="flightMode">Play mode<select id="flightMode"><option value="solo">Solo</option><option value="ghost">Ghost</option><option value="live">Live Players</option></select></label>
+  <label for="flightMode">Play mode<select id="flightMode"><option value="solo">Solo</option><option value="ghost">Best player ghost</option><option value="personal" disabled>Personal best (complete a flight)</option><option value="live">Live Players (replays)</option></select></label>
   <label for="craft">Craft<select id="craft"><option value="arrow">Arrow</option><option value="mantis">Mantis</option><option value="wraith">Wraith</option><option value="split">Splitwing</option></select></label>
   <label for="paint">Paint color<input id="paint" type="color" value="#e1e9f4"></label>
   <label for="country">Flag<select id="country"></select></label>
  </div>
- <button id="showScores" type="button" aria-controls="scoresPanel" aria-expanded="false">Leaderboard</button>
+ <button id="showScores" type="button" aria-controls="scoresPanel" aria-expanded="false">Leaderboard</button><button id="shareResult" type="button" hidden>Share result</button>
  <p id="scoreStatus" role="status"></p>
  <nav class="game-shelf" data-other-games="glider" aria-label="Other games" hidden></nav>
  <small>Hold ← / → or the on-screen buttons to steer.</small>

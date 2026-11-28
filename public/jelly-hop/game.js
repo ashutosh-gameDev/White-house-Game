@@ -1,8 +1,10 @@
+import {resultShare} from '/result-share.js';
 import {makeAudio} from '/audio.js';
 import {STEP,TILE,WORLD_WIDTH,MAX_TICKS,MAX_INPUT_SIZE,climbSeed,platformDepth,platformsFor,createClimb,launchVector,stepClimb} from './climb.js';
 
 const el=id=>document.getElementById(id);
 const canvas=el('game'),ctx=canvas.getContext('2d');
+const share=resultShare(el('shareResult'),canvas,'Pathru','/pathru');
 const play=el('play'),panel=el('panel'),notice=el('notice'),save=el('save'),pilot=el('pilot');
 bindPlayerName(pilot,'Jelly');
 const board=el('leaderboard'),boardButton=el('board');
@@ -12,11 +14,24 @@ const day=Math.floor(Date.now()/86400000);
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const ease=(value,target,rate,dt)=>value+(target-value)*(1-Math.exp(-rate*dt));
 let daily={day,seed:climbSeed(day),scores:[],ghost:null};
-let run=createClimb(daily.seed),ghost=null,moves=[],ghostMoves=[],ghostIndex=0,ghostLimit=0;
+let run=createClimb(daily.seed),ghosts=[],moves=[];
 let playing=false,aim=null,queued=null,keys=0,clock=0,frameAt=0,accumulator=0;
 let width=0,height=0,ratio=1,scale=1,offsetX=0,cameraX=0,cameraY=-480,squash=0,noticeUntil=0;
 import {bindPlayerName,savePlayerName} from '/player-name.js';
-let driverId,record=null,saving=false,lastSaveAt=0,knownHeight=0;
+let driverId,record=null,saving=false,lastSaveAt=0,knownHeight=0,personal=null;
+const climbKey=()=> 'pathru-replay-v1-'+daily.day;
+function replay(record){
+ try{
+  const [ticks,moves]=JSON.parse(record?.inputs);
+  if(Number.isInteger(ticks)&&ticks>0&&ticks<=MAX_TICKS&&Array.isArray(moves))return {ticks,moves};
+ }catch{}
+ return null;
+}
+function updatePersonalOption(){
+ const option=el('mode').querySelector('[value=personal]');
+ option.disabled=!personal;
+ option.textContent=personal?'Personal best · '+personal.height+' m':'Personal best (save a climb)';
+}
 try{
  driverId=localStorage.getItem('rapier-driver')??crypto.randomUUID();
  localStorage.setItem('rapier-driver',driverId);
@@ -59,20 +74,42 @@ async function load(){
   daily=await response.json();
   knownHeight=daily.rank?daily.scores[daily.rank-1]?.distance??0:0;
  }catch{message('Leaderboard unavailable. You can still climb.');}
+ try{
+  const saved=JSON.parse(localStorage.getItem(climbKey()));
+  if(replay(saved)&&Number.isFinite(saved.height))personal=saved;
+ }catch{}
+ updatePersonalOption();
  run=createClimb(daily.seed);
  play.disabled=false;
 }
-function start(){
+async function start(){
+ if(play.disabled)return;
+ const selected=el('mode').value;
+ let opponents=[];
+ if(selected==='live'){
+  play.disabled=true;
+  message('Loading saved climbs…');
+  try{
+   const query=new URLSearchParams({mode:'live',driver:driverId??''});
+   const response=await fetch('/api/jelly?'+query,{signal:AbortSignal.timeout(5000)});
+   if(!response.ok)throw Error();
+   const result=await response.json();
+   if(result.day===daily.day)opponents=result.rivals;
+  }catch{}
+  finally{play.disabled=false;}
+ }else if(selected==='ghost')opponents=[daily.ghost];
+ else if(selected==='personal')opponents=[personal];
+ share.clear();
+ el('climbResult').hidden=true;
  run=createClimb(daily.seed);moves=[];queued=aim=null;keys=0;accumulator=0;squash=0;record=null;
  cameraX=0;cameraY=-height/scale*.72;
- ghost=null;ghostIndex=0;
- if(el('mode').value==='ghost'){
-  try{
-   [ghostLimit,ghostMoves]=JSON.parse(daily.ghost.inputs);
-   ghost=createClimb(daily.seed);
-   message('Ghost: '+daily.ghost.name);
-  }catch{message('No ghost saved for today yet.');}
- }else message('Pull down and away from your next ledge, then release.');
+ ghosts=opponents.flatMap(opponent=>{
+  const saved=replay(opponent);
+  return saved?[{...saved,name:opponent.name,state:createClimb(daily.seed),index:0}]:[];
+ });
+ if(ghosts.length)message(selected==='live'?'Climbing against '+ghosts.length+' saved runs.':'Ghost: '+ghosts[0].name);
+ else if(selected!=='solo')message('No ghost available today. Climbing solo.');
+ else message('Pull down and away from your next ledge, then release.');
  panel.hidden=true;save.hidden=false;el('restart').hidden=false;showBoard(false);
  playing=true;play.blur();
 }
@@ -81,6 +118,9 @@ el('restart').onclick=()=>{
  playing=false;aim=queued=null;
  panel.hidden=false;save.hidden=true;el('restart').hidden=true;
  play.textContent='Climb again';
+ el('climbResult').textContent='Your climb: '+run.height+' m';
+ el('climbResult').hidden=false;
+ share.show(run.height+' m');
  void saveHeight(false);
 };
 function dragLaunch(){
@@ -134,22 +174,32 @@ function advance(){
  if(run.height>previous&&run.ticks<=MAX_TICKS&&moves.length<=1800){
   record={height:run.height,ticks:run.ticks,moves:moves.length};
  }
- if(ghost&&ghost.ticks<ghostLimit){
-  const action=ghostMoves[ghostIndex]?.[0]===ghost.ticks?ghostMoves[ghostIndex++].slice(1):null;
-  stepClimb(ghost,action);
+ for(const ghost of ghosts){
+  if(ghost.state.ticks>=ghost.ticks)continue;
+  const action=ghost.moves[ghost.index]?.[0]===ghost.state.ticks?ghost.moves[ghost.index++].slice(1):null;
+  stepClimb(ghost.state,action);
  }
  if(record&&record.height>knownHeight&&run.standing&&clock-lastSaveAt>12)void saveHeight(false);
 }
 async function saveHeight(manual){
- if(saving)return;
- if(!driverId||!record||record.height<=knownHeight){
-  if(manual)message(record?'Best height already saved.':'Climb higher to save a score.');
+ if(!record){
+  if(manual)message('Climb higher to save a score.');
   return;
  }
  const current=record;
  const inputs=JSON.stringify([current.ticks,moves.slice(0,current.moves)]);
  if(inputs.length>MAX_INPUT_SIZE){
   if(manual)message('This climb has reached the saved-replay limit.');
+  return;
+ }
+ if(!personal||current.height>personal.height){
+  personal={name:'Personal best',height:current.height,inputs};
+  try{localStorage.setItem(climbKey(),JSON.stringify(personal));}catch{}
+  updatePersonalOption();
+ }
+ if(saving)return;
+ if(!driverId||current.height<=knownHeight){
+  if(manual)message('Best height saved on this device.');
   return;
  }
  saving=true;lastSaveAt=clock;
@@ -222,7 +272,7 @@ function frame(now){
  squash=ease(squash,0,9,dt);
  cameraX=ease(cameraX,run.x-clamp(run.x,25,WORLD_WIDTH-25),6,dt);
  cameraY=ease(cameraY,run.y-height/scale*.68,7,dt);
- el('stats').textContent='Height '+Math.max(0,Math.floor((-run.y-17)/10))+' m · Best '+Math.max(run.height,knownHeight)+' m';
+ el('stats').textContent='Height '+Math.max(0,Math.floor((-run.y-17)/10))+' m · Best '+Math.max(run.height,knownHeight,personal?.height??0)+' m';
  ctx.setTransform(ratio,0,0,ratio,0,0);
  const gradient=ctx.createLinearGradient(0,0,0,height);
  gradient.addColorStop(0,'#221937');gradient.addColorStop(1,'#664977');
@@ -244,13 +294,14 @@ function frame(now){
   }
   ctx.globalAlpha=1;
  }
- if(ghost)drawJelly(ghost,true);
+ for(const ghost of ghosts)drawJelly(ghost.state,true);
  drawJelly(run);
  ctx.restore();
  if(aim){
   ctx.strokeStyle='#c1eeb0';ctx.lineWidth=1.7;
   ctx.beginPath();ctx.moveTo(aim.startX,aim.startY);ctx.lineTo(aim.x,aim.y);ctx.stroke();
  }
+ share.captureFrame();
  requestAnimationFrame(frame);
 }
 void load();

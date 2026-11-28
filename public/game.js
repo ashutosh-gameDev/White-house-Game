@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {DAY,DT,inputCodes,FINISH_GATE,makeCourse,mulberry32,palettes,regions} from './course.js';
 import {ready,clock,makeCar,step} from './race.js';
 import {wheels} from './vehicle.js';
+import {resultShare} from '/result-share.js';
 import {makeAudio} from './audio.js';
 import {countries,normalizeCountry,drawFlag} from './countries.js';
 
@@ -89,6 +90,7 @@ async function boot(){
  countryPicker.replaceChildren(...Object.entries(countries).map(([code,name])=>new Option(name,code)));
  countryPicker.value=selectedCountry;
  const canvas=el('world'), gl=canvas.getContext('webgl2',{antialias:true,alpha:false});
+ const share=resultShare(el('shareResult'),canvas,'Daily Rally',location.pathname+eventSuffix);
  if(!gl)throw Error('This rally requires a browser with WebGL 2.');
  const renderer=new THREE.WebGLRenderer({canvas,context:gl,antialias:true});
  renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));
@@ -803,11 +805,12 @@ async function boot(){
  try{const saved=JSON.parse(localStorage.getItem(ghostKey));if(validGhost(saved))personal=saved;}catch{}
  function ghostChoices(){
   const current=ghostMenu.value;
-  const options=[new Option('Solo','solo'),new Option('Ghost','leader'),new Option('Live Players','rivals')];
-  if(personal)options.push(new Option('Personal best · '+pretty(personal.ms),'personal'));
-  if(!leader)options[1].textContent='Ghost (no saved run yet)';
+  const options=[new Option('Solo','solo'),new Option('Best player ghost','leader'),new Option('Live Players (replays)','rivals')];
+  options.push(new Option(personal?'Personal best · '+pretty(personal.ms):'Personal best (complete a race)','personal'));
+  options[1].disabled=!leader;
+  options[3].disabled=!personal;
   ghostMenu.replaceChildren(...options);
-  ghostMenu.value=options.some(option=>option.value===current)?current:leader?'leader':'solo';
+  ghostMenu.value=options.some(option=>option.value===current&&!option.disabled)?current:'solo';
  }
  ghostChoices();ghostMenu.value=data.practice?'solo':'rivals';
  const rivalStatus=el('rivalStatus');
@@ -962,6 +965,7 @@ async function boot(){
   if(!recording)audio.start();
   const current=++serial,opponent=ghostMenu.value;
   const fromMenu=mode==='preview';
+  share.clear();
   if(opponent==='rivals'&&mode==='preview'){
    let rivals=[];
    pendingStart=true;
@@ -1070,17 +1074,19 @@ async function boot(){
    el('retry').focus();
   },maxTime?450:1450);
   if(recording)window.dispatchEvent(new CustomEvent('rally:replay-finished',{detail:{ms,finished:!maxTime}}));
-  if(maxTime||data.practice)return;
+  if(!recording)share.show(course.event.name+' · '+pretty(ms)+(maxTime?' · Time limit reached':''));
+  if(maxTime||data.practice||recording)return;
   const name=getPlayerName('Rookie');
+  const best=!personal||ms<personal.ms;
+  if(best){
+   personal={name,country:runCountry,car:runCar,ms,inputs:encoded};
+   try{localStorage.setItem(ghostKey,JSON.stringify(personal));}catch{}
+   ghostChoices();
+  }
   try{
    const response=await fetch('/api/result'+eventSuffix,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:data.event.day,id:driverId,name,country:runCountry,car:runCar,inputs:encoded})});
    const result=await response.json();
    if(!response.ok)throw Error(result.error);
-   const best=!personal||result.ms<personal.ms;
-   if(best){
-    personal={name,country:runCountry,car:runCar,ms:result.ms,inputs:encoded};
-    try{localStorage.setItem(ghostKey,JSON.stringify(personal));}catch{}
-   }
    if(validGhost(result.ghost))leader=result.ghost;
    displayScores(result.scores);ghostChoices();
    if(current!==serial)return;
@@ -1089,7 +1095,7 @@ async function boot(){
    if(!el('results').hidden)toggleBoard(true);
    el('resultStatus').textContent=(best?'Personal best · ':'')+(result.rank?'Daily best rank #'+result.rank:'Outside today’s top 50');
   }catch(error){
-   if(current===serial){el('resultStatus').dataset.state='error';el('resultStatus').textContent=error.message;}
+   if(current===serial){el('resultStatus').dataset.state='error';el('resultStatus').textContent=(best?'Personal best saved on this device. ':'')+error.message;}
   }
  }
  function tireEffects(){
@@ -1336,6 +1342,7 @@ async function boot(){
   audio.update(car,mode,mask);
   drawWeather(mode==='preview'?camera.position:p,orbit);
   renderer.render(scene,camera);
+  share.captureFrame();
   if(replayFrame)window.dispatchEvent(replayFrame);
   requestAnimationFrame(frame);
  }

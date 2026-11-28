@@ -1,10 +1,12 @@
 import {WIDTH,HEIGHT,PICKUP_RADIUS,STEP,TABLE_COUNT,MAX_VERIFY_TICKS,utcDay,dailyTable,shoot,stepTable} from './physics.js';
+import {resultShare} from '/result-share.js';
 import {makeAudio} from '/audio.js';
 import {bindPlayerName,savePlayerName} from '/player-name.js';
 
 
 const el=id=>document.getElementById(id);
 const canvas=el('table'),ctx=canvas.getContext('2d');
+const share=resultShare(el('shareResult'),canvas,'Touch Red','/touch-red');
 const music=makeAudio(el('sound'));
 const dialog=el('leaderboard'),player=el('player');
 const day=utcDay();
@@ -37,7 +39,9 @@ resize();
 function update(){
  el('hits').textContent=table.hits+' white hits';
 }
+const practiceShare=resultShare(el('sharePractice'),canvas,'Touch Red','/touch-red');
 function reset(){
+ share.clear();practiceShare.clear();
  revision++;
  table=dailyTable(practiceTable??day);
  const practice=practiceTable!==null;
@@ -137,6 +141,7 @@ function drawBoard({scores,rank}){
 }
 function showBoard(finished){
  el('finish').hidden=!finished;
+ if(finished)share.setVisible(true);
  el('player-label').hidden=finished;
  el('board-status').textContent='Loading scores…';
  el('scores').replaceChildren();
@@ -164,10 +169,12 @@ async function endShot(){
  el('status').textContent=score;
  if(practiceTable!==null){
   el('status').textContent='Congrats! '+score+'.';
+  practiceShare.show('Random table · '+score);
   return;
  }
  el('finish-score').textContent=score;
  showBoard(true);
+ share.show('Daily table · '+score);
  if(ticks>MAX_VERIFY_TICKS){
   el('finish-status').textContent='Shots over 10 minutes are unranked.';
   await loadBoard();
@@ -278,7 +285,9 @@ function frame(now){
   }
   update();
  }
- render();requestAnimationFrame(frame);
+ render();
+ share.captureFrame();practiceShare.captureFrame();
+ requestAnimationFrame(frame);
 }
 reset();
 requestAnimationFrame(frame);

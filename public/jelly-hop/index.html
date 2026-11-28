@@ -15,12 +15,13 @@
 <div id="notice" role="status" aria-live="polite"></div>
 <main id="panel">
  <div class="panel-top"><h1>Pathru</h1><button id="play" type="button" disabled>Play</button></div>
+ <p id="climbResult" hidden></p>
  <p>Hop around solid ledges and see how high your little rock can climb.</p>
  <div class="setup">
   <label>Pilot name <input id="pilot" maxlength="20" value="Jelly"></label>
-  <label>Play mode <select id="mode"><option value="solo">Solo</option><option value="ghost">Ghost</option></select></label>
+  <label>Play mode <select id="mode"><option value="solo">Solo</option><option value="live">Live Players (replays)</option><option value="ghost">Best player ghost</option><option value="personal" disabled>Personal best (save a climb)</option></select></label>
  </div>
- <button id="board" type="button" aria-expanded="false" aria-controls="leaderboard">Leaderboard</button>
+ <button id="board" type="button" aria-expanded="false" aria-controls="leaderboard">Leaderboard</button><button id="shareResult" type="button" hidden>Share result</button>
  <p><small>Pull back and release to hop in the opposite direction. On a keyboard, aim with ← / → and press Space.</small></p>
  <nav class="game-shelf" data-other-games="jelly" aria-label="Other games" hidden></nav>
 </main>
